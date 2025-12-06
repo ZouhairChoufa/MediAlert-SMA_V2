@@ -1,0 +1,210 @@
+{% extends "base.html" %}
+
+{% block title %}Suivi en Direct - MediAlert SMA{% endblock %}
+{% block header %}SUIVI EN DIRECT - ALERTE {{ alert_id }}{% endblock %}
+
+{% block content %}
+<div class="grid grid-cols-12 gap-6 h-full">
+    <!-- Left Panel - Patient Info -->
+    <div class="col-span-3 space-y-6">
+        <div class="glass-panel p-6">
+            <h3 class="text-sm font-semibold text-cyan-400 uppercase tracking-wider mb-4">
+                <i class="fas fa-user-injured mr-2"></i>Patient
+            </h3>
+            <div id="patientInfo" class="space-y-3">
+                <div class="flex justify-between">
+                    <span class="text-xs text-slate-500">Nom</span>
+                    <span class="mono text-sm">{{ patient.nom_prenom }}</span>
+                </div>
+                <div class="flex justify-between">
+                    <span class="text-xs text-slate-500">Âge</span>
+                    <span class="mono text-sm">{{ patient.age }} ans</span>
+                </div>
+                <div class="flex justify-between">
+                    <span class="text-xs text-slate-500">Sexe</span>
+                    <span class="mono text-sm">{{ patient.sexe }}</span>
+                </div>
+                <div class="pt-3 border-t border-cyan-500/20">
+                    <div class="text-xs text-slate-500 mb-2">Symptômes</div>
+                    <div class="text-sm">{{ patient.symptomes }}</div>
+                </div>
+                <div class="pt-3 border-t border-cyan-500/20">
+                    <div class="text-xs text-slate-500 mb-2">Localisation</div>
+                    <div class="text-sm">{{ patient.localisation }}</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Agent Console -->
+        <div class="glass-panel p-6">
+            <h3 class="text-sm font-semibold text-cyan-400 uppercase tracking-wider mb-4">
+                <i class="fas fa-terminal mr-2"></i>Console Agents
+            </h3>
+            <div id="agentConsole" class="space-y-1 text-xs mono text-slate-400 max-h-96 overflow-y-auto terminal bg-slate-950/50 p-3 rounded-lg">
+                <div class="log-line text-green-400">[SYSTEM] Initialisation...</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Center - Map -->
+    <div class="col-span-6">
+        <div class="glass-panel h-full relative overflow-hidden">
+            <!-- Status Overlay -->
+            <div class="absolute top-4 left-4 z-10 glass-panel-dark px-4 py-3">
+                <div class="text-xs text-slate-500">STATUT</div>
+                <div id="status" class="mono text-cyan-400 text-lg font-semibold">EN COURS</div>
+            </div>
+
+            <!-- ETA Display -->
+            <div class="absolute top-4 right-4 z-10 glass-panel-dark px-6 py-4">
+                <div class="text-xs text-slate-500 mb-1">ETA</div>
+                <div class="mono text-red-400 text-3xl font-bold" id="eta">--:--</div>
+            </div>
+
+            <!-- Map -->
+            <div id="map" class="w-full h-full"></div>
+        </div>
+    </div>
+
+    <!-- Right Panel - Hospital & Route Info -->
+    <div class="col-span-3 space-y-6">
+        <div class="glass-panel p-6">
+            <h3 class="text-sm font-semibold text-cyan-400 uppercase tracking-wider mb-4">
+                <i class="fas fa-hospital mr-2"></i>Hôpital
+            </h3>
+            <div id="hospitalInfo" class="space-y-3">
+                <div class="text-center text-slate-500 py-4">
+                    <div class="spinner mx-auto mb-2"></div>
+                    <div class="text-xs">Sélection en cours...</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="glass-panel p-6">
+            <h3 class="text-sm font-semibold text-cyan-400 uppercase tracking-wider mb-4">
+                <i class="fas fa-route mr-2"></i>Trajet
+            </h3>
+            <div id="routeInfo" class="space-y-3">
+                <div class="flex justify-between">
+                    <span class="text-xs text-slate-500">Distance</span>
+                    <span class="mono text-sm" id="distance">-- km</span>
+                </div>
+                <div class="flex justify-between">
+                    <span class="text-xs text-slate-500">Durée</span>
+                    <span class="mono text-sm" id="duration">-- min</span>
+                </div>
+                <div class="flex justify-between">
+                    <span class="text-xs text-slate-500">Ambulance</span>
+                    <span class="mono text-cyan-400 text-sm" id="ambulanceId">AMB-001</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="glass-panel p-6">
+            <h3 class="text-sm font-semibold text-cyan-400 uppercase tracking-wider mb-4">
+                <i class="fas fa-heartbeat mr-2"></i>Triage
+            </h3>
+            <div id="triageInfo" class="space-y-3">
+                <div>
+                    <div class="text-xs text-slate-500 mb-2">Gravité</div>
+                    <div class="h-2 bg-slate-800 rounded-full overflow-hidden">
+                        <div id="severityBar" class="h-full bg-gradient-to-r from-green-500 via-yellow-500 to-red-500" style="width: 0%"></div>
+                    </div>
+                </div>
+                <div>
+                    <div class="text-xs text-slate-500 mb-1">Type Vecteur</div>
+                    <div id="vectorType" class="mono text-sm">--</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/map_animation.js') }}"></script>
+<script>
+const alertId = "{{ alert_id }}";
+let eventSource;
+
+function addConsoleLog(message, type = 'info') {
+    const console = document.getElementById('agentConsole');
+    const time = new Date().toLocaleTimeString('fr-FR');
+    const colors = {
+        'info': 'text-slate-400',
+        'success': 'text-green-400',
+        'warning': 'text-yellow-400',
+        'error': 'text-red-400',
+        'agent': 'text-cyan-400'
+    };
+    
+    const logLine = document.createElement('div');
+    logLine.className = `log-line ${colors[type]}`;
+    logLine.textContent = `[${time}] ${message}`;
+    console.appendChild(logLine);
+    console.scrollTop = console.scrollHeight;
+}
+
+async function processAlert() {
+    addConsoleLog('Démarrage du traitement...', 'success');
+    
+    try {
+        // Call crew processing
+        addConsoleLog('Agent Patient: Création alerte...', 'agent');
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        
+        addConsoleLog('Agent Médecin: Analyse symptômes...', 'agent');
+        await new Promise(resolve => setTimeout(resolve, 1500));
+        
+        addConsoleLog('Agent Coordonnateur: Sélection ambulance...', 'agent');
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        
+        addConsoleLog('Agent Ambulance: Calcul route...', 'agent');
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        
+        // Update UI with results
+        updateHospitalInfo();
+        updateRouteInfo();
+        updateTriageInfo();
+        initializeMap();
+        
+        addConsoleLog('Traitement terminé avec succès', 'success');
+        
+    } catch (error) {
+        addConsoleLog('Erreur: ' + error.message, 'error');
+    }
+}
+
+function updateHospitalInfo() {
+    document.getElementById('hospitalInfo').innerHTML = `
+        <div>
+            <div class="text-xs text-slate-500 mb-1">Nom</div>
+            <div class="mono text-sm">CHU Ibn Rochd</div>
+        </div>
+        <div>
+            <div class="text-xs text-slate-500 mb-1">Service</div>
+            <div class="text-sm">Urgences</div>
+        </div>
+        <div>
+            <div class="text-xs text-slate-500 mb-1">Lit</div>
+            <div class="mono text-green-400 text-sm">A-12</div>
+        </div>
+    `;
+}
+
+function updateRouteInfo() {
+    document.getElementById('distance').textContent = '2.5 km';
+    document.getElementById('duration').textContent = '8 min';
+    document.getElementById('eta').textContent = '00:08';
+}
+
+function updateTriageInfo() {
+    document.getElementById('severityBar').style.width = '60%';
+    document.getElementById('vectorType').textContent = 'SMUR';
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    processAlert();
+});
+</script>
+{% endblock %}

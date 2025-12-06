@@ -1,0 +1,153 @@
+---
+creer_l_alerte:
+  description: |-
+    Capturer les données brutes de l'alerte pour le patient {nom_prenom} ({age} ans, {sexe}).
+    Symptômes: {symptomes}.
+    Localisation: {localisation}.
+  expected_output: |-
+    JSON strict:
+    {
+      "alert_id": "UUID",
+      "timestamp": "ISO8601",
+      "patient_data": {
+        "nom": "{nom_prenom}",
+        "age": {age},
+        "sexe": "{sexe}",
+        "symptomes_bruts": "{symptomes}"
+      },
+      "localisation": {
+        "adresse": "{localisation}",
+        "lat": "float (si dispo)",
+        "lng": "float (si dispo)"
+      }
+    }
+  agent: emetteur_d_alerte
+analyse_medicale_d_urgence:
+  description: |-
+    URGENT : Analyser les symptômes reçus de la tâche 'creer_l_alerte'.
+    1. Identifier les mots-clés de risque vital.
+    2. Estimer un score de gravité (1=Vital, 5=Bobologie).
+    3. Recommander le type de ressource (Ambulance Simple vs Équipe Médicale SMUR).
+    4. Lister les suspicions diagnostiques.
+  expected_output: |-
+    JSON strict:
+    {
+      "triage_medical": {
+        "niveau_gravite": "integer (1-5)",
+        "urgence_vitale_suspectee": "boolean",
+        "type_vecteur_requis": "SMUR|AMBULANCE|VSL",
+        "hypotheses_diagnostiques": ["string"],
+        "risque_evolution": "STABLE|INSTABLE"
+      }
+    }
+  agent: medical_regulation_ai_triage
+  context:
+  - creer_l_alerte
+triage_patients_et_selection_ambulance:
+  description: |-
+    Utiliser le 'type_vecteur_requis' défini par l'analyse médicale.
+    Trouver l'unité disponible la plus proche de {localisation} capable de répondre à ce besoin médical.
+    Sélectionner l'hôpital le plus adapté (ex: Unité Neuro pour un AVC) avec des lits dispo.
+  expected_output: |-
+    JSON strict:
+    {
+      "decision_operationnelle": {
+        "statut": "ASSIGNED",
+        "ambulance_id": "string",
+        "type_ambulance": "string",
+        "hopital_cible_id": "string",
+        "service_cible": "string",
+        "raison_choix": "string (ex: Plus proche hôpital avec Neurochirurgie)"
+      }
+    }
+  agent: operational_regulation_chief
+  context:
+  - creer_l_alerte
+  - analyse_medicale_d_urgence
+traitement_du_specialiste:
+  description: |-
+    Générer des recommandations protocolaires basées sur les hypothèses diagnostiques de l'urgentiste.
+    Fournir une "Checklist Pré-Arrivée" pour l'équipe qui reçoit le patient.
+    CECI N'EST PAS UNE PRESCRIPTION, MAIS UNE SUGGESTION CLINIQUE.
+  expected_output: |-
+    JSON strict:
+    {
+      "support_clinique": {
+        "protocole_suggere": "string (ex: Protocole Douleur Thoracique)",
+        "checklist_preparation": ["string (ex: Préparer ECG)", "string (ex: Voie veineuse)"],
+        "medicaments_possibles_a_prevoir": ["string"]
+      }
+    }
+  agent: clinical_protocols_engine
+  context:
+  - analyse_medicale_d_urgence
+valider_la_demande_du_coordonnateur:
+  description: |-
+    L'ambulance sélectionnée calcule la route exacte.
+    Prendre en compte le trafic actuel.
+    Calculer ETA Patient (Temps d'approche) et ETA Hôpital (Temps d'évacuation).
+  expected_output: |-
+    JSON strict:
+    {
+      "logistique": {
+        "eta_patient_minutes": "integer",
+        "eta_hopital_minutes": "integer",
+        "distance_totale_km": "float",
+        "polyline_route": "string",
+        "heure_arrivee_estimee": "ISO8601"
+      }
+    }
+  agent: mobile_intervention_pilot
+  context:
+  - triage_patients_et_selection_ambulance
+recevoir_les_patients:
+  description: |-
+    L'hôpital reçoit les données médicales (Triage) et logistiques (ETA).
+    Réserver le lit spécifique (ex: Lit de déchocage).
+    Pré-alerter l'équipe de garde.
+  expected_output: |-
+    JSON strict:
+    {
+      "accueil_hopital": {
+        "statut_lit": "RESERVED",
+        "numero_lit": "string",
+        "equipe_mobilisee": ["Urgentiste", "Infirmier", "Brancardier"],
+        "instructions_acces": "string (ex: Porte Urgences A)"
+      }
+    }
+  agent: hospital_resource_manager
+  context:
+  - analyse_medicale_d_urgence
+  - valider_la_demande_du_coordonnateur
+consolider_dossier_pour_ui:
+  description: |-
+    Fusionner toutes les données en une vue "Temps Réel" pour l'interface utilisateur.
+    Afficher clairement:
+    1. Où est l'ambulance ? (Logistique)
+    2. Qui nous attend ? (Hôpital)
+    3. Que se passe-t-il ? (Médical - simplifié)
+  expected_output: |-
+    JSON strict FINAL pour le Frontend:
+    {
+      "ui_view": {
+        "message_patient": "string (ex: Une équipe médicale arrive dans 5 min)",
+        "timeline": {
+          "alerte_recue": "ISO8601",
+          "triage_effectue": "ISO8601",
+          "ambulance_en_route": "ISO8601"
+        },
+        "details_techniques": {
+           "ambulance": "Object (ID, ETA)",
+           "hopital": "Object (Nom, Service)",
+           "medical": "Object (Gravité, Protocole)"
+        }
+      }
+    }
+  agent: patient_interface_reporting
+  context:
+  - creer_l_alerte
+  - analyse_medicale_d_urgence
+  - triage_patients_et_selection_ambulance
+  - valider_la_demande_du_coordonnateur
+  - recevoir_les_patients
+  - traitement_du_specialiste

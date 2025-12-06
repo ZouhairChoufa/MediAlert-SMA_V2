@@ -1,0 +1,24 @@
+[project]
+name = "sumi___systeme_urgence_medicale_intelligent"
+version = "0.1.0"
+description = "sumi___systeme_urgence_medicale_intelligent using crewAI"
+authors = [{ name = "Your Name", email = "you@example.com" }]
+requires-python = ">=3.10,<3.14"
+dependencies = [
+    "crewai[litellm,tools]==1.4.1",
+]
+
+[project.scripts]
+sumi___systeme_urgence_medicale_intelligent = "sumi___systeme_urgence_medicale_intelligent.main:run"
+run_crew = "sumi___systeme_urgence_medicale_intelligent.main:run"
+train = "sumi___systeme_urgence_medicale_intelligent.main:train"
+replay = "sumi___systeme_urgence_medicale_intelligent.main:replay"
+test = "sumi___systeme_urgence_medicale_intelligent.main:test"
+run_with_trigger = "sumi___systeme_urgence_medicale_intelligent.main:run_with_trigger"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.crewai]
+type = "crew"

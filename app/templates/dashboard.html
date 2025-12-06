@@ -1,0 +1,223 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="grid grid-cols-12 gap-6 h-full">
+    <!-- Left Panel - Triage & Status -->
+    <div class="col-span-3 space-y-6">
+        <!-- Triage AI Output -->
+        <div class="glass-panel p-6">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-sm font-semibold text-cyan-400 uppercase tracking-wider">Triage AI</h3>
+                <div class="pulse-green w-2 h-2 rounded-full"></div>
+            </div>
+            
+            <div class="space-y-4">
+                <div>
+                    <div class="flex justify-between text-xs text-slate-500 mb-2">
+                        <span>Gravité</span>
+                        <span id="severityScore" class="mono text-red-400">--</span>
+                    </div>
+                    <div class="h-2 bg-slate-800 rounded-full overflow-hidden">
+                        <div id="severityBar" class="h-full bg-gradient-to-r from-green-500 via-yellow-500 to-red-500 transition-all duration-500" style="width: 0%"></div>
+                    </div>
+                </div>
+                
+                <div class="space-y-2">
+                    <div class="text-xs text-slate-500">Type Vecteur</div>
+                    <div id="vectorType" class="mono text-cyan-400 text-sm">--</div>
+                </div>
+                
+                <div class="space-y-2">
+                    <div class="text-xs text-slate-500">Hypothèses</div>
+                    <div id="diagnosis" class="text-xs text-slate-300 space-y-1">
+                        <div class="flex items-center space-x-2">
+                            <div class="w-1 h-1 bg-cyan-500 rounded-full"></div>
+                            <span>En attente d'analyse...</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Dispatch Timeline -->
+        <div class="glass-panel p-6">
+            <h3 class="text-sm font-semibold text-cyan-400 uppercase tracking-wider mb-4">Timeline Dispatch</h3>
+            
+            <div class="space-y-4">
+                <div class="timeline-item active">
+                    <div class="timeline-dot"></div>
+                    <div class="timeline-content">
+                        <div class="text-xs text-slate-500">00:00</div>
+                        <div class="text-sm">Alerte Reçue</div>
+                    </div>
+                </div>
+                
+                <div class="timeline-item">
+                    <div class="timeline-dot"></div>
+                    <div class="timeline-content">
+                        <div class="text-xs text-slate-500">00:45</div>
+                        <div class="text-sm">Triage Effectué</div>
+                    </div>
+                </div>
+                
+                <div class="timeline-item">
+                    <div class="timeline-dot"></div>
+                    <div class="timeline-content">
+                        <div class="text-xs text-slate-500">01:30</div>
+                        <div class="text-sm">Ambulance En Route</div>
+                    </div>
+                </div>
+                
+                <div class="timeline-item">
+                    <div class="timeline-dot"></div>
+                    <div class="timeline-content">
+                        <div class="text-xs text-slate-500">--:--</div>
+                        <div class="text-sm">Arrivée Patient</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Agent Logs -->
+        <div class="glass-panel p-6">
+            <h3 class="text-sm font-semibold text-cyan-400 uppercase tracking-wider mb-4">Agent Logs</h3>
+            <div id="agentLogs" class="space-y-2 text-xs mono text-slate-400 max-h-48 overflow-y-auto terminal">
+                <div class="log-line">[00:00:00] System initialized</div>
+                <div class="log-line">[00:00:01] 7 agents online</div>
+                <div class="log-line">[00:00:02] Awaiting emergency alerts...</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Center - Map -->
+    <div class="col-span-6">
+        <div class="glass-panel h-full relative overflow-hidden">
+            <!-- Map HUD Overlay -->
+            <div class="absolute top-4 left-4 z-10 space-y-2">
+                <div class="glass-panel-dark px-4 py-2">
+                    <div class="text-xs text-slate-500">AMBULANCE</div>
+                    <div class="mono text-cyan-400 text-lg font-semibold" id="ambulanceId">AMB-001</div>
+                </div>
+                
+                <div class="glass-panel-dark px-4 py-2">
+                    <div class="text-xs text-slate-500">VITESSE</div>
+                    <div class="mono text-green-400 text-lg font-semibold" id="speed">0 km/h</div>
+                </div>
+                
+                <div class="glass-panel-dark px-4 py-2">
+                    <div class="text-xs text-slate-500">DISTANCE</div>
+                    <div class="mono text-yellow-400 text-lg font-semibold" id="distance">-- km</div>
+                </div>
+            </div>
+
+            <!-- ETA Display -->
+            <div class="absolute top-4 right-4 z-10">
+                <div class="glass-panel-dark px-6 py-4">
+                    <div class="text-xs text-slate-500 mb-1">ETA</div>
+                    <div class="mono text-red-400 text-3xl font-bold" id="eta">--:--</div>
+                </div>
+            </div>
+
+            <!-- Map Container -->
+            <div id="map" class="w-full h-full"></div>
+        </div>
+    </div>
+
+    <!-- Right Panel - Live Data -->
+    <div class="col-span-3 space-y-6">
+        <!-- Current Alert -->
+        <div class="glass-panel p-6">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-sm font-semibold text-cyan-400 uppercase tracking-wider">Alerte Active</h3>
+                <div class="pulse-red w-2 h-2 rounded-full"></div>
+            </div>
+            
+            <div id="currentAlert" class="space-y-3">
+                <div class="flex justify-between">
+                    <span class="text-xs text-slate-500">Patient</span>
+                    <span class="mono text-sm">--</span>
+                </div>
+                <div class="flex justify-between">
+                    <span class="text-xs text-slate-500">Âge</span>
+                    <span class="mono text-sm">--</span>
+                </div>
+                <div class="flex justify-between">
+                    <span class="text-xs text-slate-500">Symptômes</span>
+                    <span class="text-sm text-right">--</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Hospital Info -->
+        <div class="glass-panel p-6">
+            <h3 class="text-sm font-semibold text-cyan-400 uppercase tracking-wider mb-4">Hôpital Cible</h3>
+            
+            <div id="hospitalInfo" class="space-y-3">
+                <div>
+                    <div class="text-xs text-slate-500 mb-1">Nom</div>
+                    <div class="mono text-sm">CHU Ibn Rochd</div>
+                </div>
+                <div>
+                    <div class="text-xs text-slate-500 mb-1">Service</div>
+                    <div class="text-sm">Urgences</div>
+                </div>
+                <div>
+                    <div class="text-xs text-slate-500 mb-1">Lit Réservé</div>
+                    <div class="mono text-green-400 text-sm">A-12</div>
+                </div>
+                <div>
+                    <div class="text-xs text-slate-500 mb-1">Distance</div>
+                    <div class="mono text-sm">2.5 km</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- System Metrics -->
+        <div class="glass-panel p-6">
+            <h3 class="text-sm font-semibold text-cyan-400 uppercase tracking-wider mb-4">Métriques Système</h3>
+            
+            <div class="space-y-4">
+                <div>
+                    <div class="flex justify-between text-xs mb-2">
+                        <span class="text-slate-500">CPU</span>
+                        <span class="mono text-green-400">45%</span>
+                    </div>
+                    <div class="h-1 bg-slate-800 rounded-full overflow-hidden">
+                        <div class="h-full bg-green-500" style="width: 45%"></div>
+                    </div>
+                </div>
+                
+                <div>
+                    <div class="flex justify-between text-xs mb-2">
+                        <span class="text-slate-500">Mémoire</span>
+                        <span class="mono text-cyan-400">62%</span>
+                    </div>
+                    <div class="h-1 bg-slate-800 rounded-full overflow-hidden">
+                        <div class="h-full bg-cyan-500" style="width: 62%"></div>
+                    </div>
+                </div>
+                
+                <div>
+                    <div class="flex justify-between text-xs mb-2">
+                        <span class="text-slate-500">Réseau</span>
+                        <span class="mono text-yellow-400">28%</span>
+                    </div>
+                    <div class="h-1 bg-slate-800 rounded-full overflow-hidden">
+                        <div class="h-full bg-yellow-500" style="width: 28%"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/map_animation.js') }}"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        initializeMap();
+        startDashboardUpdates();
+    });
+</script>
+{% endblock %}

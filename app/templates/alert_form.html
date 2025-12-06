@@ -1,0 +1,193 @@
+{% extends "base.html" %}
+
+{% block title %}Nouvelle Alerte - MediAlert SMA{% endblock %}
+{% block header %}NOUVELLE ALERTE D'URGENCE{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto">
+    <div class="glass-panel p-8">
+        <form id="alertForm" class="space-y-6">
+            <!-- Patient Info -->
+            <div class="grid grid-cols-2 gap-6">
+                <div>
+                    <label class="block text-sm text-slate-400 mb-2">Nom & Prénom</label>
+                    <input type="text" name="nom_prenom" required
+                        class="w-full bg-slate-800/50 border border-cyan-500/20 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-cyan-500/50">
+                </div>
+                
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm text-slate-400 mb-2">Âge</label>
+                        <input type="number" name="age" required
+                            class="w-full bg-slate-800/50 border border-cyan-500/20 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-cyan-500/50">
+                    </div>
+                    <div>
+                        <label class="block text-sm text-slate-400 mb-2">Sexe</label>
+                        <select name="sexe" required
+                            class="w-full bg-slate-800/50 border border-cyan-500/20 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-cyan-500/50">
+                            <option value="M">M</option>
+                            <option value="F">F</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Symptoms -->
+            <div>
+                <label class="block text-sm text-slate-400 mb-2">Symptômes</label>
+                <textarea name="symptomes" rows="4" required
+                    class="w-full bg-slate-800/50 border border-cyan-500/20 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-cyan-500/50"
+                    placeholder="Décrivez les symptômes..."></textarea>
+            </div>
+
+            <!-- Location -->
+            <div>
+                <label class="block text-sm text-slate-400 mb-2">Localisation</label>
+                <div class="relative">
+                    <input type="text" id="locationInput" name="localisation" required
+                        value="{{ location_data.city if location_data else '' }}"
+                        class="w-full bg-slate-800/50 border border-cyan-500/20 rounded-lg px-4 py-3 pr-12 text-white focus:outline-none focus:border-cyan-500/50"
+                        placeholder="Adresse ou ville">
+                    <input type="hidden" id="lat" name="lat">
+                    <input type="hidden" id="lng" name="lng">
+                    <button type="button" id="detectLocationBtn" 
+                        class="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-lg bg-cyan-500/20 hover:bg-cyan-500/30 flex items-center justify-center transition-all"
+                        title="Détecter ma position">
+                        <i class="fas fa-crosshairs text-cyan-400"></i>
+                    </button>
+                </div>
+                <p class="text-xs text-slate-500 mt-2" id="locationStatus">
+                    <i class="fas fa-location-dot"></i> 
+                    Cliquez sur l'icône pour détecter votre position
+                </p>
+            </div>
+
+            <!-- Submit -->
+            <button type="submit" 
+                class="w-full bg-gradient-to-r from-red-500 to-red-600 text-white py-4 rounded-lg font-semibold hover:shadow-lg hover:shadow-red-500/50 transition-all">
+                <i class="fas fa-ambulance mr-2"></i>
+                CRÉER ALERTE D'URGENCE
+            </button>
+        </form>
+    </div>
+</div>
+
+<script>
+// Location detection
+const detectBtn = document.getElementById('detectLocationBtn');
+const locationInput = document.getElementById('locationInput');
+const locationStatus = document.getElementById('locationStatus');
+const latInput = document.getElementById('lat');
+const lngInput = document.getElementById('lng');
+
+detectBtn.addEventListener('click', async () => {
+    const icon = detectBtn.querySelector('i');
+    icon.className = 'fas fa-spinner fa-spin text-cyan-400';
+    locationStatus.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Détection en cours...';
+    
+    if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+            async (position) => {
+                const lat = position.coords.latitude;
+                const lng = position.coords.longitude;
+                latInput.value = lat;
+                lngInput.value = lng;
+                
+                try {
+                    const response = await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json`);
+                    const data = await response.json();
+                    locationInput.value = data.display_name || `${lat.toFixed(4)}, ${lng.toFixed(4)}`;
+                    locationStatus.innerHTML = `<i class="fas fa-check-circle text-green-400"></i> Position GPS détectée`;
+                } catch (e) {
+                    locationInput.value = `${lat.toFixed(4)}, ${lng.toFixed(4)}`;
+                    locationStatus.innerHTML = '<i class="fas fa-check-circle text-green-400"></i> Position GPS détectée';
+                }
+                icon.className = 'fas fa-crosshairs text-cyan-400';
+            },
+            async () => {
+                try {
+                    const response = await fetch('/api/detect-ip-location', { method: 'POST' });
+                    const result = await response.json();
+                    if (result.success) {
+                        const loc = result.location;
+                        latInput.value = loc.lat;
+                        lngInput.value = loc.lng;
+                        locationInput.value = `${loc.city}, ${loc.country}`;
+                        locationStatus.innerHTML = '<i class="fas fa-info-circle text-yellow-400"></i> Position détectée par IP';
+                    }
+                } catch (e) {
+                    locationStatus.innerHTML = '<i class="fas fa-exclamation-circle text-red-400"></i> Détection échouée';
+                }
+                icon.className = 'fas fa-crosshairs text-cyan-400';
+            }
+        );
+    } else {
+        try {
+            const response = await fetch('/api/detect-ip-location', { method: 'POST' });
+            const result = await response.json();
+            if (result.success) {
+                const loc = result.location;
+                latInput.value = loc.lat;
+                lngInput.value = loc.lng;
+                locationInput.value = `${loc.city}, ${loc.country}`;
+                locationStatus.innerHTML = '<i class="fas fa-info-circle text-yellow-400"></i> Position détectée par IP';
+            }
+        } catch (e) {
+            locationStatus.innerHTML = '<i class="fas fa-exclamation-circle text-red-400"></i> Erreur';
+        }
+        icon.className = 'fas fa-crosshairs text-cyan-400';
+    }
+});
+
+const form = document.getElementById('alertForm');
+
+form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const formData = new FormData(e.target);
+    const data = Object.fromEntries(formData);
+    
+    const btn = e.target.querySelector('button[type="submit"]');
+    const originalText = btn.innerHTML;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>TRAITEMENT EN COURS...';
+    btn.disabled = true;
+    
+    try {
+        if (latInput.value && lngInput.value) {
+            data.gps_coords = {
+                lat: parseFloat(latInput.value),
+                lng: parseFloat(lngInput.value),
+                accuracy: 50
+            };
+        }
+        
+        const response = await fetch('/api/alert', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify(data)
+        });
+        
+        const result = await response.json();
+        
+        if (response.ok && result.alert_id) {
+            window.location.href = `/tracking/${result.alert_id}`;
+        } else {
+            alert('Erreur: ' + (result.error || 'Erreur inconnue'));
+            btn.innerHTML = originalText;
+            btn.disabled = false;
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        alert('Erreur de connexion');
+        btn.innerHTML = originalText;
+        btn.disabled = false;
+    }
+});
+
+form.addEventListener('keypress', (e) => {
+    if (e.key === 'Enter' && e.target.tagName !== 'TEXTAREA') {
+        e.preventDefault();
+        form.requestSubmit();
+    }
+});
+</script>
+{% endblock %}

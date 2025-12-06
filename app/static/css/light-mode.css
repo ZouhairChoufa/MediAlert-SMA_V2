@@ -1,0 +1,91 @@
+/* Light Mode Styles */
+body.light-mode {
+    background: #f8fafc !important;
+    color: #0f172a !important;
+}
+
+body.light-mode aside {
+    background: rgba(255, 255, 255, 0.95) !important;
+    border-color: rgba(8, 145, 178, 0.3) !important;
+}
+
+body.light-mode header {
+    background: rgba(255, 255, 255, 0.8) !important;
+    border-color: rgba(8, 145, 178, 0.3) !important;
+}
+
+body.light-mode .glass-panel {
+    background: rgba(255, 255, 255, 0.9) !important;
+    border: 1px solid rgba(8, 145, 178, 0.3) !important;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05) !important;
+}
+
+body.light-mode .glass-panel-dark {
+    background: rgba(248, 250, 252, 0.95) !important;
+    border: 1px solid rgba(8, 145, 178, 0.3) !important;
+}
+
+body.light-mode .text-slate-200,
+body.light-mode .text-slate-300 {
+    color: #334155 !important;
+}
+
+body.light-mode .text-slate-400 {
+    color: #64748b !important;
+}
+
+body.light-mode .text-slate-500 {
+    color: #94a3b8 !important;
+}
+
+body.light-mode .text-cyan-400 {
+    color: #0891b2 !important;
+}
+
+body.light-mode .bg-slate-800\/50,
+body.light-mode .bg-slate-800 {
+    background: rgba(241, 245, 249, 0.9) !important;
+}
+
+body.light-mode input,
+body.light-mode textarea,
+body.light-mode select {
+    background: white !important;
+    color: #0f172a !important;
+    border-color: rgba(8, 145, 178, 0.3) !important;
+}
+
+body.light-mode .border-cyan-500\/20 {
+    border-color: rgba(8, 145, 178, 0.3) !important;
+}
+
+body.light-mode .nav-item {
+    color: #64748b !important;
+}
+
+body.light-mode .nav-item:hover,
+body.light-mode .nav-item.active {
+    color: #0891b2 !important;
+    background: rgba(8, 145, 178, 0.1) !important;
+}
+
+body.light-mode .mono {
+    color: #0f172a !important;
+}
+
+body.light-mode h1,
+body.light-mode h2,
+body.light-mode h3,
+body.light-mode h4 {
+    color: #0f172a !important;
+}
+
+body.light-mode .terminal {
+    background: rgba(241, 245, 249, 0.8) !important;
+    color: #475569 !important;
+}
+
+body.light-mode .pulse-green,
+body.light-mode .pulse-red {
+    opacity: 0.8;
+}
