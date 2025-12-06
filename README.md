@@ -1,4 +1,4 @@
-# 🏥 MediAlert SMA - Système Multi-Agents d'Urgence Médicale
+#  MediAlert SMA - Système Multi-Agents d'Urgence Médicale
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
 [![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
@@ -8,40 +8,40 @@
 
 > **Système d'urgence médicale intelligent** propulsé par l'IA qui coordonne ambulances, hôpitaux et équipes médicales à travers une collaboration multi-agents intelligente.
 
-## ✨ Fonctionnalités Principales
+##  Fonctionnalités Principales
 
-### 🤖 **Intelligence Artificielle Multi-Agents**
+###  **Intelligence Artificielle Multi-Agents**
 - **7 Agents Spécialisés**: Coordination harmonieuse pour la gestion des urgences
 - **Système de Triage Intelligent**: Analyse automatique des symptômes et évaluation de priorité
 - **Routage Intelligent**: Dispatch optimal d'ambulance basé sur la localisation et disponibilité
 - **Prise de Décision en Temps Réel**: Coordination instantanée entre tous les services d'urgence
 
-### 🚑 **Gestion des Urgences**
+###  **Gestion des Urgences**
 - **Création d'Alerte Instantanée**: Soumission rapide d'alerte d'urgence avec données complètes du patient
 - **Dispatch d'Ambulance**: Sélection et routage automatisés de l'ambulance disponible la plus proche
 - **Coordination Hospitalière**: Disponibilité des lits en temps réel et matching de spécialistes
 - **Assemblage d'Équipe Médicale**: Notification automatique des spécialistes médicaux requis
 
-### 🗺️ **Suivi Géospatial en Temps Réel**
+###  **Suivi Géospatial en Temps Réel**
 - **Cartes Interactives**: Visualisation en temps réel avec OpenStreetMap
 - **Routage sur Routes Réelles**: Les routes suivent les routes réelles via l'API OpenRouteService
 - **Animation en Direct**: Mouvement de l'ambulance en temps réel (60 FPS) sur routes réelles
 - **Compte à Rebours ETA**: Mises à jour en temps réel du temps d'arrivée
 - **Distinction Visuelle**: Routes en pointillés rouges (aller) vs lignes bleues solides (retour)
 
-### 🤖 **MediBot - Assistant Médical IA**
+###  **MediBot - Assistant Médical IA**
 - **Chatbot IA 24/7**: Consultation médicale instantanée et pré-triage
 - **Détection Critique**: Escalade automatique d'urgence pour symptômes mettant la vie en danger
 - **Mémoire de Conversation**: Réponses contextuelles tout au long de la session
 - **Interface Professionnelle**: Widget de chat flottant avec animations fluides
 
-### 🌍 **Intelligence de Géolocalisation IP**
+###  **Intelligence de Géolocalisation IP**
 - **Détection Automatique de Localisation**: Utilise AbstractAPI pour détecter la localisation du patient depuis l'IP
 - **Fallback Intelligent**: Valide les localisations manuelles vagues avec géolocalisation basée sur IP
 - **Gestion des Proxies**: Gère X-Forwarded-For pour extraction IP précise
 - **Piste d'Audit**: Stocke les localisations manuelles et IP pour conformité
 
-## 🏗️ Architecture du Système
+##  Architecture du Système
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
@@ -67,7 +67,7 @@
 └─────────────────────────────────────────────────────────────┘
 ```
 
-## 🚀 Démarrage Rapide (5 Minutes!)
+##  Démarrage Rapide (5 Minutes!)
 
 ### Prérequis
 
@@ -133,13 +133,13 @@ MediBot:       Cliquer sur le bouton 🤖 (en bas à droite)
 Suivi Live:    Info Patient → Bouton Suivi en Direct
 ```
 
-## 🎯 Test Rapide des Fonctionnalités
+##  Test Rapide des Fonctionnalités
 
 ### Tester MediBot (30 secondes)
 1. Ouvrir http://localhost:5000
-2. Cliquer sur le bouton 🤖 (en bas à droite)
+2. Cliquer sur le bouton  (en bas à droite)
 3. Taper: "J'ai mal à la tête"
-4. Voir la réponse IA! ✅
+4. Voir la réponse IA! 
 
 ### Tester le Suivi en Direct (2 minutes)
 1. Aller sur /alert
