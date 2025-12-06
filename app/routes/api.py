@@ -1,8 +1,11 @@
 from flask import Blueprint, request, jsonify, session
 import threading
 import uuid
+import sys
+import json
 from app.services.firebase_service import FirebaseService
-from app.crew.crew_simple import MediAlertCrew
+# Updated import to use the correct Crew class
+from app.crew.crew import SystemeUrgencesMedicalesCrew
 from app.services.geolocation import GeolocationService
 from app.services.smart_dispatch import SmartDispatchEngine
 
@@ -46,11 +49,12 @@ def create_alert():
         # Merge location sources
         gps = data.get('gps_coords')
         manual = {'address': data.get('localisation'), 'lat': data.get('lat'), 'lng': data.get('lng')}
+        # Note: request.remote_addr might need proxy handling in production
         ip = geolocation_service.get_ip_location(request.remote_addr)
         
         location = geolocation_service.merge_all_location_sources(gps, manual, ip)
         
-        # Smart dispatch
+        # Smart dispatch (initial logic before CrewAI)
         emergency_level = data.get('emergency_level', 2)
         dispatch_result = smart_dispatch.dispatch_ambulance(
             location['lat'], location['lng'], emergency_level
@@ -71,20 +75,42 @@ def create_alert():
         # Trigger crew processing in background
         def process_crew():
             try:
-                print(f"\n[AGENT] Starting crew processing for alert {alert_id}")
+                print(f"\n[AGENT] Starting crew processing for alert {alert_id}", flush=True)
+                sys.stdout.flush()
                 alert_storage[alert_id]['logs'].append('[SYSTEM] Initialisation crew...')
                 
-                crew = MediAlertCrew()
-                result = crew.execute_emergency_response(data)
+                # Create inputs for the Crew
+                # We map the data to the variables expected in tasks.yaml ({nom_prenom}, etc.)
+                crew_inputs = {
+                    'nom_prenom': data.get('nom_prenom'),
+                    'age': data.get('age'),
+                    'sexe': data.get('sexe'),
+                    'symptomes': data.get('symptomes'),
+                    'localisation': data.get('localisation') or location.get('address'),
+                    'nv_urgence': data.get('emergency_level', 'Non spécifié')
+                }
+
+                # Initialize and run the Crew
+                crew = SumiSystemeUrgenceMedicaleIntelligentCrew().crew()
+                result = crew.kickoff(inputs=crew_inputs)
                 
-                alert_storage[alert_id]['result'] = result
+                # --- PRINT RESULT TO TERMINAL ---
+                print("\n" + "="*50)
+                print(f"✅ FINAL CREW OUTPUT for Alert {alert_id}:")
+                print("="*50)
+                print(result)
+                print("="*50 + "\n", flush=True)
+                # --------------------------------
+                
+                alert_storage[alert_id]['result'] = str(result)
                 alert_storage[alert_id]['status'] = 'completed'
-                print(f"[AGENT] Crew processing completed for alert {alert_id}")
+                print(f"[AGENT] Crew processing completed for alert {alert_id}", flush=True)
                 
             except Exception as e:
                 alert_storage[alert_id]['status'] = 'error'
                 alert_storage[alert_id]['error'] = str(e)
-                print(f"[ERROR] Crew processing failed: {e}")
+                print(f"[ERROR] Crew processing failed: {e}", flush=True)
+                sys.stdout.flush()
         
         thread = threading.Thread(target=process_crew)
         thread.daemon = True
@@ -98,6 +124,7 @@ def create_alert():
         })
         
     except Exception as e:
+        print(f"Error in create_alert: {e}")
         return jsonify({'error': str(e)}), 500
 
 @api_bp.route('/alert/<alert_id>/data', methods=['GET'])

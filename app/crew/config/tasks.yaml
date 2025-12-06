@@ -1,9 +1,16 @@
----
 creer_l_alerte:
   description: |-
-    Capturer les données brutes de l'alerte pour le patient {nom_prenom} ({age} ans, {sexe}).
-    Symptômes: {symptomes}.
-    Localisation: {localisation}.
+    Capturer et normaliser les données brutes de l'alerte pour le patient {nom_prenom} ({age} ans, {sexe}).
+    
+    1. Analyse de la Localisation :
+       - Si des coordonnées GPS précises sont fournies (via le navigateur), les utiliser en priorité absolue.
+       - Si seule une adresse textuelle est fournie, la géocoder.
+       - Si aucune adresse n'est fournie, utiliser la localisation IP comme fallback.
+       - Input Localisation: "{localisation}" (Adresse ou coords).
+    
+    2. Analyse des Symptômes :
+       - Symptômes bruts : "{symptomes}".
+       - Identifier si le patient est conscient ou inconscient.
   expected_output: |-
     JSON strict:
     {
@@ -13,98 +20,122 @@ creer_l_alerte:
         "nom": "{nom_prenom}",
         "age": {age},
         "sexe": "{sexe}",
-        "symptomes_bruts": "{symptomes}"
+        "symptomes_bruts": "{symptomes}",
+        "conscience": "CONSCIENT|INCONSCIENT|ALTERÉ"
       },
       "localisation": {
-        "adresse": "{localisation}",
-        "lat": "float (si dispo)",
-        "lng": "float (si dispo)"
+        "adresse_detectee": "string",
+        "source": "GPS|MANUEL|IP",
+        "coordonnees": {
+          "lat": "float",
+          "lng": "float"
+        },
+        "precision_estimee_metres": "integer"
       }
     }
-  agent: emetteur_d_alerte
+  agent: agentpatient
+
 analyse_medicale_d_urgence:
   description: |-
-    URGENT : Analyser les symptômes reçus de la tâche 'creer_l_alerte'.
-    1. Identifier les mots-clés de risque vital.
-    2. Estimer un score de gravité (1=Vital, 5=Bobologie).
-    3. Recommander le type de ressource (Ambulance Simple vs Équipe Médicale SMUR).
-    4. Lister les suspicions diagnostiques.
+    URGENT : Effectuer un triage médical avancé basé sur les données de 'creer_l_alerte'.
+    
+    1. Score de Gravité : Calculer le score CCMU (1-5) ou ESI.
+       - Mots-clés critiques à détecter : "douleur thoracique", "apnée", "hémorragie", "inconscient".
+    2. Vecteur d'Intervention : Déterminer le type de véhicule.
+       - SMUR (Médecin + Infirmier) pour CCMU 1 & 2.
+       - Ambulance de Secours (VSAV) pour CCMU 3.
+       - Ambulance Simple / VSL pour CCMU 4 & 5.
+    3. Risques : Identifier les risques immédiats (Arrêt cardiaque imminent, AVC, Choc).
   expected_output: |-
     JSON strict:
     {
       "triage_medical": {
-        "niveau_gravite": "integer (1-5)",
+        "score_ccmu": "integer (1-5)",
+        "niveau_gravite": "CRITIQUE|URGENT|RELATIF",
         "urgence_vitale_suspectee": "boolean",
-        "type_vecteur_requis": "SMUR|AMBULANCE|VSL",
+        "type_vecteur_requis": "SMUR|AMBULANCE_SECOURS|VSL",
+        "specialite_requise": "CARDIOLOGIE|NEUROLOGIE|TRAUMATOLOGIE|GENERAL",
         "hypotheses_diagnostiques": ["string"],
         "risque_evolution": "STABLE|INSTABLE"
       }
     }
-  agent: medical_regulation_ai_triage
+  agent: agentmedecinurgence
   context:
   - creer_l_alerte
+
 triage_patients_et_selection_ambulance:
   description: |-
-    Utiliser le 'type_vecteur_requis' défini par l'analyse médicale.
-    Trouver l'unité disponible la plus proche de {localisation} capable de répondre à ce besoin médical.
-    Sélectionner l'hôpital le plus adapté (ex: Unité Neuro pour un AVC) avec des lits dispo.
+    Orchestration Logistique Intelligente.
+    
+    1. Sélection de l'Hôpital :
+       - Utiliser le `SmartDispatchEngine` pour trouver l'hôpital le plus proche CAPABLE de traiter la `specialite_requise` (ex: ne pas envoyer un AVC dans un hôpital sans IRM).
+       - Calculer la distance réelle (route) et non à vol d'oiseau.
+    
+    2. Sélection de l'Ambulance :
+       - Identifier l'unité disponible la plus proche du patient correspondant au `type_vecteur_requis`.
   expected_output: |-
     JSON strict:
     {
       "decision_operationnelle": {
         "statut": "ASSIGNED",
-        "ambulance_id": "string",
-        "type_ambulance": "string",
-        "hopital_cible_id": "string",
-        "service_cible": "string",
-        "raison_choix": "string (ex: Plus proche hôpital avec Neurochirurgie)"
+        "ambulance_assignee": {
+            "id": "string",
+            "type": "string",
+            "base_depart": "string"
+        },
+        "hopital_cible": {
+            "id": "string",
+            "nom": "string",
+            "service_cible": "string",
+            "capacite_lits": "DISPONIBLE|SATURE",
+            "raison_choix": "string (ex: Hôpital le plus proche avec Unité Neurovasculaire)"
+        }
       }
     }
-  agent: operational_regulation_chief
+  agent: agentcordonnateur
   context:
   - creer_l_alerte
   - analyse_medicale_d_urgence
-traitement_du_specialiste:
-  description: |-
-    Générer des recommandations protocolaires basées sur les hypothèses diagnostiques de l'urgentiste.
-    Fournir une "Checklist Pré-Arrivée" pour l'équipe qui reçoit le patient.
-    CECI N'EST PAS UNE PRESCRIPTION, MAIS UNE SUGGESTION CLINIQUE.
-  expected_output: |-
-    JSON strict:
-    {
-      "support_clinique": {
-        "protocole_suggere": "string (ex: Protocole Douleur Thoracique)",
-        "checklist_preparation": ["string (ex: Préparer ECG)", "string (ex: Voie veineuse)"],
-        "medicaments_possibles_a_prevoir": ["string"]
-      }
-    }
-  agent: clinical_protocols_engine
-  context:
-  - analyse_medicale_d_urgence
+
 valider_la_demande_du_coordonnateur:
   description: |-
-    L'ambulance sélectionnée calcule la route exacte.
-    Prendre en compte le trafic actuel.
-    Calculer ETA Patient (Temps d'approche) et ETA Hôpital (Temps d'évacuation).
+    Calcul de Trajectoire Précise (OpenRouteService).
+    
+    1. Segment A (Ambulance -> Patient) : Calculer temps d'approche réel avec trafic.
+    2. Segment B (Patient -> Hôpital) : Calculer temps d'évacuation.
+    3. Générer la Polyline encodée pour l'affichage sur la carte en temps réel.
   expected_output: |-
     JSON strict:
     {
       "logistique": {
-        "eta_patient_minutes": "integer",
-        "eta_hopital_minutes": "integer",
-        "distance_totale_km": "float",
-        "polyline_route": "string",
-        "heure_arrivee_estimee": "ISO8601"
+        "temps_total_mission_min": "integer",
+        "segment_aller": {
+            "eta_patient_minutes": "integer",
+            "distance_km": "float"
+        },
+        "segment_retour": {
+            "eta_hopital_minutes": "integer",
+            "distance_km": "float"
+        },
+        "itineraire": {
+            "polyline_encodee": "string",
+            "points_passage": ["lat,lng"]
+        },
+        "heure_arrivee_estimee_hopital": "ISO8601"
       }
     }
-  agent: mobile_intervention_pilot
+  agent: agentambulence
   context:
   - triage_patients_et_selection_ambulance
+
 recevoir_les_patients:
   description: |-
-    L'hôpital reçoit les données médicales (Triage) et logistiques (ETA).
-    Réserver le lit spécifique (ex: Lit de déchocage).
-    Pré-alerter l'équipe de garde.
+    Activation des Ressources Hospitalières.
+    
+    Sur la base de l'ETA calculé :
+    1. Réserver physiquement le lit ou le box de déchocage.
+    2. Notifier l'équipe de garde (Urgentiste, Spécialiste) de l'heure exacte d'arrivée.
+    3. Préparer le matériel spécifique (ex: Plateau technique AVC).
   expected_output: |-
     JSON strict:
     {
@@ -112,38 +143,74 @@ recevoir_les_patients:
         "statut_lit": "RESERVED",
         "numero_lit": "string",
         "equipe_mobilisee": ["Urgentiste", "Infirmier", "Brancardier"],
-        "instructions_acces": "string (ex: Porte Urgences A)"
+        "instructions_acces": "string (ex: Porte Urgences A - Code rouge)"
       }
     }
-  agent: hospital_resource_manager
+  agent: agenthopital
   context:
   - analyse_medicale_d_urgence
   - valider_la_demande_du_coordonnateur
+
+traitement_du_specialiste:
+  description: |-
+    Support Clinique Pré-Hospitalier.
+    
+    Générer un protocole "Just-in-Time" pour l'équipe ambulancière pendant le trajet.
+    - Liste des gestes à effectuer avant l'arrivée (ex: poser voie veineuse, ECG).
+    - Préparation des médicaments à l'hôpital.
+  expected_output: |-
+    JSON strict:
+    {
+      "support_clinique": {
+        "protocole_transport": "string (Gestes à faire dans l'ambulance)",
+        "checklist_accueil": ["string (ex: Préparer Thrombolyse)", "string (ex: Scanner libre)"],
+        "medicaments_a_preparer": ["string"]
+      }
+    }
+  agent: agentmedecinspecialiste
+  context:
+  - analyse_medicale_d_urgence
+
 consolider_dossier_pour_ui:
   description: |-
-    Fusionner toutes les données en une vue "Temps Réel" pour l'interface utilisateur.
-    Afficher clairement:
-    1. Où est l'ambulance ? (Logistique)
-    2. Qui nous attend ? (Hôpital)
-    3. Que se passe-t-il ? (Médical - simplifié)
+    Génération du "Digital Twin" de l'intervention pour le Dashboard.
+    
+    Fusionner TOUTES les données (Médical, Geo, Logistique) en un objet unique pour le frontend.
+    L'objet doit être directement consommable par le Javascript de la carte (Leaflet).
   expected_output: |-
     JSON strict FINAL pour le Frontend:
     {
       "ui_view": {
-        "message_patient": "string (ex: Une équipe médicale arrive dans 5 min)",
+        "message_patient": "string (ex: Une équipe SMUR arrive dans 5 min)",
         "timeline": {
           "alerte_recue": "ISO8601",
           "triage_effectue": "ISO8601",
-          "ambulance_en_route": "ISO8601"
+          "ambulance_en_route": "ISO8601",
+          "arrivee_prevue_hopital": "ISO8601"
         },
         "details_techniques": {
-           "ambulance": "Object (ID, ETA)",
-           "hopital": "Object (Nom, Service)",
-           "medical": "Object (Gravité, Protocole)"
+            "ambulance": {
+                "id": "string",
+                "eta_display": "string",
+                "position_actuelle": {"lat": "float", "lng": "float"}
+            },
+            "hopital": {
+                "nom": "string",
+                "service": "string",
+                "distance_display": "string"
+            },
+            "medical": {
+                "gravite_display": "string",
+                "vecteur": "string"
+            },
+            "carte": {
+                "route_polyline": "string (pour affichage Leaflet)",
+                "bounds": [[lat,lng], [lat,lng]]
+            }
         }
       }
     }
-  agent: patient_interface_reporting
+  agent: agentadministratif
   context:
   - creer_l_alerte
   - analyse_medicale_d_urgence

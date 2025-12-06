@@ -89,3 +89,13 @@ body.light-mode .pulse-green,
 body.light-mode .pulse-red {
     opacity: 0.8;
 }
+
+/* Search Results Light Mode */
+body.light-mode #searchResults > div {
+    background: white !important;
+    color: #0f172a !important;
+}
+
+body.light-mode #searchResults .font-semibold {
+    color: #0f172a !important;
+}

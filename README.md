@@ -317,8 +317,6 @@ medialert_pro/
 │   └── firebase-credentials.json # Compte service Firebase (privé)
 ├── data/                         # Fichiers données
 │   └── morocco_hospitals.csv    # Base données hôpitaux
-├── deployment/                   # Configurations déploiement
-│   └── docker-compose.yml       # Orchestration conteneurs
 ├── docs/                         # Documentation
 │   ├── PROJECT_STRUCTURE.md     # Structure projet
 │   ├── REORGANIZATION_SUMMARY.md # Résumé réorganisation
@@ -333,7 +331,6 @@ medialert_pro/
 │   └── test_simple.py           # Tests composants simples
 ├── .venv/                        # Environnement virtuel Python
 ├── .gitignore                    # Règles ignore Git
-├── Dockerfile                    # Définition conteneur
 ├── activate_venv.bat            # Activation environnement
 ├── start_app.bat                # Lanceur application
 └── run.py                        # Point d'entrée application

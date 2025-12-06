@@ -6,7 +6,11 @@ from app.services.ors_service import ORSService
 
 class SmartDispatchEngine:
     def __init__(self):
-        self.ors_service = ORSService()
+        try:
+            self.ors_service = ORSService()
+        except Exception as e:
+            print(f"Warning: ORS service unavailable: {e}")
+            self.ors_service = None
         self.hospitals = None
     
     def load_hospitals(self):
@@ -68,29 +72,33 @@ class SmartDispatchEngine:
         hospital = optimal['hospital']
         
         # Step 4: Calculate full mission trajectory
-        try:
-            # Ambulance -> Patient
-            leg1 = self.ors_service.get_route(
-                start_coords=[ambulance_coords[1], ambulance_coords[0]],
-                end_coords=[patient_lon, patient_lat]
-            )
-            
-            # Patient -> Hospital
-            leg2 = self.ors_service.get_route(
-                start_coords=[patient_lon, patient_lat],
-                end_coords=[hospital['lng'], hospital['lat']]
-            )
-            
-            total_distance = leg1.get('distance_km', 0) + leg2.get('distance_km', 0)
-            total_time = leg1.get('duration_min', 0) + leg2.get('duration_min', 0)
-            
-            # Combine geometries
-            full_geometry = leg2.get('geometry', '')
-            
-        except Exception as e:
-            print(f"ORS routing failed: {e}")
+        if self.ors_service:
+            try:
+                # Ambulance -> Patient
+                leg1 = self.ors_service.get_route(
+                    start_coords=[ambulance_coords[1], ambulance_coords[0]],
+                    end_coords=[patient_lon, patient_lat]
+                )
+                
+                # Patient -> Hospital
+                leg2 = self.ors_service.get_route(
+                    start_coords=[patient_lon, patient_lat],
+                    end_coords=[hospital['lng'], hospital['lat']]
+                )
+                
+                total_distance = leg1.get('distance_km', 0) + leg2.get('distance_km', 0)
+                total_time = leg1.get('duration_min', 0) + leg2.get('duration_min', 0)
+                full_geometry = leg2.get('geometry', '')
+                
+            except Exception as e:
+                print(f"ORS routing failed: {e}")
+                total_distance = optimal['distance_km']
+                total_time = int(total_distance * 3)
+                full_geometry = ''
+        else:
+            # Fallback without ORS
             total_distance = optimal['distance_km']
-            total_time = int(total_distance * 3)  # Estimate: 20km/h avg
+            total_time = int(total_distance * 3)
             full_geometry = ''
         
         return {

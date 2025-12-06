@@ -12,7 +12,8 @@ class MediAlertCrew:
         self.llm = ChatGroq(
             model=Config.GROQ_MODEL,
             api_key=Config.GROQ_API_KEY,
-            temperature=0.3
+            temperature=0.3,
+            max_retries=2
         )
         self.hospital_service = HospitalService()
         self.ors_service = ORSService()
@@ -36,53 +37,60 @@ class MediAlertCrew:
         
         try:
             # Task 1: Create Alert
-            print("\n[AGENT PATIENT] Création de l'alerte...")
+            print("\n[AGENT PATIENT] Création de l'alerte...", flush=True)
             alert_result = self._execute_task('creer_l_alerte', inputs)
             results['alert'] = alert_result
-            print(f"[AGENT PATIENT] ✓ Alerte créée: {alert_result.get('alerte_patient', {}).get('id_alerte', 'N/A')}")
+            print(f"[AGENT PATIENT] ✓ Alerte créée: {alert_result.get('alerte_patient', {}).get('id_alerte', 'N/A')}", flush=True)
+            print(f"[AGENT PATIENT] JSON Output:\n{json.dumps(alert_result, indent=2, ensure_ascii=False)}\n", flush=True)
             
             # Task 2: Medical Analysis
-            print("\n[AGENT MÉDECIN URGENCE] Analyse médicale en cours...")
+            print("\n[AGENT MÉDECIN URGENCE] Analyse médicale en cours...", flush=True)
             medical_result = self._execute_task('analyse_medicale_d_urgence', inputs, alert_result)
             results['medical'] = medical_result
-            print(f"[AGENT MÉDECIN URGENCE] ✓ Triage: Niveau {medical_result.get('triage_medical', {}).get('niveau_urgence', 'N/A')}")
+            print(f"[AGENT MÉDECIN URGENCE] ✓ Triage: Niveau {medical_result.get('triage_medical', {}).get('niveau_urgence', 'N/A')}", flush=True)
+            print(f"[AGENT MÉDECIN URGENCE] JSON Output:\n{json.dumps(medical_result, indent=2, ensure_ascii=False)}\n", flush=True)
             
             # Task 3: Coordinator Decision (with hospital search)
-            print("\n[AGENT COORDONNATEUR] Sélection hôpital et ambulance...")
+            print("\n[AGENT COORDONNATEUR] Sélection hôpital et ambulance...", flush=True)
             coordinator_result = self._execute_coordinator_task(inputs, alert_result, medical_result)
             results['coordinator'] = coordinator_result
             hospital_name = coordinator_result.get('selected_hospital', {}).get('name', 'N/A')
-            print(f"[AGENT COORDONNATEUR] ✓ Hôpital sélectionné: {hospital_name}")
+            print(f"[AGENT COORDONNATEUR] ✓ Hôpital sélectionné: {hospital_name}", flush=True)
+            print(f"[AGENT COORDONNATEUR] JSON Output:\n{json.dumps(coordinator_result, indent=2, ensure_ascii=False, default=str)}\n", flush=True)
             
             # Task 4: Ambulance Route Calculation
-            print("\n[AGENT AMBULANCE] Calcul de l'itinéraire...")
+            print("\n[AGENT AMBULANCE] Calcul de l'itinéraire...", flush=True)
             ambulance_result = self._execute_ambulance_task(inputs, coordinator_result)
             results['ambulance'] = ambulance_result
             eta = ambulance_result.get('logistique', {}).get('eta_patient_minutes', 'N/A')
-            print(f"[AGENT AMBULANCE] ✓ ETA: {eta} minutes")
+            print(f"[AGENT AMBULANCE] ✓ ETA: {eta} minutes", flush=True)
+            print(f"[AGENT AMBULANCE] JSON Output:\n{json.dumps(ambulance_result, indent=2, ensure_ascii=False, default=str)}\n", flush=True)
             
             # Task 5: Hospital Preparation
-            print("\n[AGENT HÔPITAL] Préparation de l'accueil...")
+            print("\n[AGENT HÔPITAL] Préparation de l'accueil...", flush=True)
             hospital_result = self._execute_task('recevoir_les_patients', inputs, medical_result, ambulance_result)
             results['hospital'] = hospital_result
-            print(f"[AGENT HÔPITAL] ✓ Lit assigné: {hospital_result.get('preparation_hopital', {}).get('numero_lit', 'N/A')}")
+            print(f"[AGENT HÔPITAL] ✓ Lit assigné: {hospital_result.get('preparation_hopital', {}).get('numero_lit', 'N/A')}", flush=True)
+            print(f"[AGENT HÔPITAL] JSON Output:\n{json.dumps(hospital_result, indent=2, ensure_ascii=False)}\n", flush=True)
             
             # Task 6: Specialist Protocols
-            print("\n[AGENT MÉDECIN SPÉCIALISTE] Protocoles de traitement...")
+            print("\n[AGENT MÉDECIN SPÉCIALISTE] Protocoles de traitement...", flush=True)
             specialist_result = self._execute_task('traitement_du_specialiste', inputs, medical_result)
             results['specialist'] = specialist_result
-            print(f"[AGENT MÉDECIN SPÉCIALISTE] ✓ Protocole défini")
+            print(f"[AGENT MÉDECIN SPÉCIALISTE] ✓ Protocole défini", flush=True)
+            print(f"[AGENT MÉDECIN SPÉCIALISTE] JSON Output:\n{json.dumps(specialist_result, indent=2, ensure_ascii=False)}\n", flush=True)
             
             # Task 7: Final UI Consolidation
-            print("\n[AGENT ADMINISTRATIF] Consolidation du dossier...")
+            print("\n[AGENT ADMINISTRATIF] Consolidation du dossier...", flush=True)
             ui_result = self._execute_final_task(inputs, results)
             results['ui'] = ui_result
-            print(f"[AGENT ADMINISTRATIF] ✓ Dossier consolidé\n")
+            print(f"[AGENT ADMINISTRATIF] ✓ Dossier consolidé", flush=True)
+            print(f"[AGENT ADMINISTRATIF] JSON Output:\n{json.dumps(ui_result, indent=2, ensure_ascii=False, default=str)}\n", flush=True)
             
             return results
             
         except Exception as e:
-            print(f"\n[ERROR] {str(e)}\n")
+            print(f"\n[ERROR] {str(e)}\n", flush=True)
             return {'error': str(e), 'partial_results': results}
     
     def _execute_task(self, task_name, inputs, *context_results):

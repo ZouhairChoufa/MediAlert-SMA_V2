@@ -58,9 +58,36 @@
     </div>
 </div>
 
-<!-- Main Map Area -->
-<div class="glass-panel h-[600px] relative overflow-hidden">
-    <div id="map" class="w-full h-full"></div>
+<!-- Main Content: Map + Hospital List -->
+<div class="grid grid-cols-2 gap-8">
+    <!-- Left: Map with Search -->
+    <div class="space-y-4">
+        <!-- Search Bar -->
+        <div class="glass-panel p-4">
+            <div class="relative">
+                <input type="text" id="mapSearch" placeholder="Rechercher un hôpital ou une ville..."
+                    class="w-full bg-slate-800/50 border border-cyan-500/20 rounded-lg pl-10 pr-4 py-3 text-white focus:outline-none focus:border-cyan-500/50">
+                <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-cyan-400"></i>
+            </div>
+            <div id="searchResults" class="mt-2 max-h-48 overflow-y-auto hidden"></div>
+        </div>
+        
+        <!-- Map -->
+        <div class="glass-panel h-[520px] relative overflow-hidden">
+            <div id="map" class="w-full h-full"></div>
+        </div>
+    </div>
+    
+    <!-- Right: Hospital Network Info -->
+    <div class="glass-panel p-8">
+        <h2 class="text-2xl font-bold mb-4 hero-title">Réseau Hospitalier</h2>
+        <p class="text-slate-400 mb-6">Notre système surveille en temps réel un réseau de <span class="text-cyan-400 font-bold" id="totalHospitals">--</span> établissements de santé à travers le Maroc.</p>
+        
+        <h3 class="text-lg font-semibold mb-4 text-cyan-400">Exemples d'Hôpitaux Connectés</h3>
+        <div id="hospitalList" class="space-y-4">
+            <!-- Hospitals will be loaded here -->
+        </div>
+    </div>
 </div>
 {% endblock %}
 
