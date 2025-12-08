@@ -1,4 +1,4 @@
-# 🚑 MediAlert SMA - Système Multi-Agents d'Urgence Médicale
+#  MediAlert SMA - Système Multi-Agents d'Urgence Médicale
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
 [![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
@@ -12,7 +12,7 @@
 
 ---
 
-## ✨ Key Features
+##  Key Features
 
 ### 🤖 Multi-Agent AI System
 - **7 Specialized Agents** working in harmony for emergency management
@@ -21,7 +21,8 @@
 - **Real-time Coordination** between all emergency services
 
 ### 🗺️ Real-Time Geospatial Tracking
-- **Interactive Maps** with live visualization
+- **Interactive Maps** with live visualization (OpenStreetMap)
+- **Hospital Search** - Real-time filtering by name or city
 - **GPS Location Detection** with IP fallback
 - **Route Animation** at 60 FPS on real roads
 - **ETA Countdown** with live updates
@@ -33,14 +34,16 @@
 - **Multi-source Merging** (GPS > Manual > IP)
 
 ### 🎨 Modern UI/UX
-- **Dark/Light Mode** with seamless transitions
-- **Engineering-Style Design** with glassmorphism
+- **Dark/Light Mode** with seamless transitions (localStorage persistence)
+- **Synchronized Map Themes** - CartoDB Dark/Light tiles auto-switch
+- **Engineering-Style Design** with glassmorphism effects
+- **Animated Process Timeline** - 5-step emergency workflow
 - **Responsive Layout** for all devices
 - **Real-time Updates** without page refresh
 
 ---
 
-## 🚀 Quick Start
+##  Quick Start
 
 ### Prerequisites
 - Python 3.10+
@@ -55,7 +58,7 @@
 ```bash
 # 1. Clone repository
 git clone https://github.com/your-username/medialert-sma.git
-cd medialert-sma
+cd medialert-sma/medialert_pro
 
 # 2. Create virtual environment
 python -m venv .venv
@@ -78,29 +81,40 @@ python run.py
 ```
 
 ### Access Application
-- **Home**: http://localhost:5000
+- **Home**: http://localhost:5000 (Hospital network map + search)
 - **Dashboard**: http://localhost:5000/dashboard
-- **Create Alert**: http://localhost:5000/alert
+- **Create Alert**: http://localhost:5000/alert (GPS-powered form)
+- **Patient Info**: http://localhost:5000/patient_info
 
 ---
 
-## 📸 Screenshots
+##  Screenshots
 
 ### Landing Page
-Modern command center interface with hospital monitoring and emergency response timeline.
+- Split-screen layout: Interactive map (left) + Hospital network info (right)
+- Real-time hospital search with instant filtering
+- Animated 5-step emergency response timeline
+- 65 hospitals monitored across Morocco
 
 ### Emergency Alert Form
-GPS-powered location detection with automatic IP fallback for precise patient positioning.
+- GPS-powered location detection with crosshair button
+- Automatic IP fallback using AbstractAPI
+- Reverse geocoding with Nominatim
+- Smart location merging (GPS > Manual > IP)
 
 ### Live Tracking
-Real-time ambulance animation on actual roads with ETA countdown and route visualization.
+- Real-time ambulance animation on actual roads with ETA countdown
+- Route visualization with OpenRouteService integration
+- Haversine distance calculation with graceful fallback
 
 ### Dark/Light Mode
-Seamless theme switching with synchronized map tiles and UI elements.
+- Seamless theme switching with localStorage persistence
+- Synchronized map tiles (CartoDB Dark/Light)
+- All UI elements transition smoothly (0.3s ease-in-out)
 
 ---
 
-## 🏗️ Architecture
+##  Architecture
 
 ```
 ┌─────────────────────────────────────────────────────────┐
@@ -146,7 +160,7 @@ Seamless theme switching with synchronized map tiles and UI elements.
 
 ---
 
-## 🔌 API Endpoints
+##  API Endpoints
 
 ### Create Emergency Alert
 ```http
@@ -220,7 +234,7 @@ medialert_pro/
 
 ---
 
-## 🛠️ Technologies
+##  Technologies
 
 ### Backend
 - **Flask 3.0** - Web framework
@@ -242,7 +256,7 @@ medialert_pro/
 
 ---
 
-## 🎯 Use Cases
+##  Use Cases
 
 ### Emergency Medical Services
 - Rapid alert creation with GPS detection
@@ -261,35 +275,38 @@ medialert_pro/
 
 ---
 
-## 🤝 Contributing
+##  Contributing
 
 We welcome contributions! See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
 
 ### Areas for Contribution
 - 🐛 Bug fixes
-- ✨ New features
-- 📝 Documentation
-- 🌍 Translations
-- 🧪 Tests
+- ✨ New features (mobile app, multi-language support)
+- 📝 Documentation improvements
+- 🌍 Translations (currently French/English)
+- 🧪 Tests (unit tests, integration tests)
+- 🗺️ Hospital database expansion (currently 65 hospitals)
 
 ---
 
-## 📄 License
+##  License
 
 This project is licensed under the MIT License - see [LICENSE](LICENSE) file for details.
 
 ---
 
-## 🙏 Acknowledgments
+##  Acknowledgments
 
-- **Groq** for lightning-fast LLM inference
-- **OpenRouteService** for reliable routing
-- **AbstractAPI** for IP geolocation
+- **Groq** for lightning-fast LLM inference (llama-3.3-70b)
+- **OpenRouteService** for reliable routing and ETA calculation
+- **AbstractAPI** for IP geolocation services
 - **LangChain** for agent orchestration framework
+- **OpenStreetMap** for map data via CartoDB tiles
+- **Nominatim** for reverse geocoding services
 
 ---
 
-## 📞 Support
+##  Support
 
 - **Issues**: [GitHub Issues](https://github.com/your-username/medialert-sma/issues)
 - **Discussions**: [GitHub Discussions](https://github.com/your-username/medialert-sma/discussions)

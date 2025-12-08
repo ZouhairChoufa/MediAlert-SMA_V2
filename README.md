@@ -24,6 +24,7 @@
 
 ###  **Suivi Géospatial en Temps Réel**
 - **Cartes Interactives**: Visualisation en temps réel avec OpenStreetMap
+- **Recherche d'Hôpitaux**: Filtrage en temps réel par nom ou ville (min 2 caractères)
 - **Routage sur Routes Réelles**: Les routes suivent les routes réelles via l'API OpenRouteService
 - **Animation en Direct**: Mouvement de l'ambulance en temps réel (60 FPS) sur routes réelles
 - **Compte à Rebours ETA**: Mises à jour en temps réel du temps d'arrivée
@@ -338,9 +339,12 @@ medialert_pro/
 
 ## 🎨 Fonctionnalités de Design
 
+- **Mode Sombre/Clair**: Basculement fluide avec persistance localStorage
+- **Thèmes de Carte Synchronisés**: Tuiles CartoDB Dark/Light changent automatiquement
+- **Timeline Animée**: Processus d'urgence en 5 étapes avec animations pulse
 - **UI/UX Moderne**: Interface propre et professionnelle avec arrière-plans dégradés
 - **Design Responsive**: Fonctionne parfaitement sur desktop, tablette et mobile
-- **Navigation Intuitive**: Navbar cohérente sur toutes les pages
+- **Navigation Intuitive**: Logo cliquable + navbar cohérente sur toutes les pages
 - **Retour Visuel**: États de chargement, messages succès/erreur
 - **Typographie Professionnelle**: Hiérarchie claire et lisibilité
 - **Statut Codé par Couleur**: Indicateurs visuels faciles à comprendre
@@ -446,7 +450,10 @@ Ce projet est sous licence MIT - voir le fichier [LICENSE](LICENSE) pour détail
 - [x] **Système Multi-Agents IA** - 7 agents spécialisés
 - [x] **Assistant Médical IA (MediBot)** - Chatbot 24/7 avec détection critique
 - [x] **Suivi Ambulance en Direct** - Cartes temps réel et animation
-- [x] **Cartes Interactives** - Intégration OpenStreetMap
+- [x] **Cartes Interactives** - Intégration OpenStreetMap avec recherche
+- [x] **Recherche d'Hôpitaux** - Filtrage temps réel par nom/ville
+- [x] **Mode Sombre/Clair** - Basculement fluide avec tuiles synchronisées
+- [x] **Timeline Animée** - Processus d'urgence en 5 étapes
 - [x] **Routage Intelligent** - Calcul route automatique
 - [x] **Compte à Rebours ETA** - Estimations arrivée temps réel
 - [x] **Géolocalisation IP** - Détection automatique localisation

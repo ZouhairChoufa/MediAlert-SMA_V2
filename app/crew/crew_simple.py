@@ -12,8 +12,7 @@ class MediAlertCrew:
         self.llm = ChatGroq(
             model=Config.GROQ_MODEL,
             api_key=Config.GROQ_API_KEY,
-            temperature=0.3,
-            max_retries=2
+            temperature=0.3
         )
         self.hospital_service = HospitalService()
         self.ors_service = ORSService()
@@ -35,6 +34,16 @@ class MediAlertCrew:
         """Execute the complete emergency response workflow"""
         results = {}
         
+        print("\n" + "="*70, flush=True)
+        print("  MEDIALERT SMA - SYSTÈME MULTI-AGENTS D'URGENCE MÉDICALE", flush=True)
+        print("="*70, flush=True)
+        print(f"\nPatient: {inputs.get('nom_prenom', 'N/A')}", flush=True)
+        print(f"Âge: {inputs.get('age', 'N/A')} ans", flush=True)
+        print(f"Sexe: {inputs.get('sexe', 'N/A')}", flush=True)
+        print(f"Symptômes: {inputs.get('symptomes', 'N/A')}", flush=True)
+        print(f"Localisation: {inputs.get('localisation', 'N/A')}", flush=True)
+        print("\n" + "-"*70 + "\n", flush=True)
+        
         try:
             # Task 1: Create Alert
             print("\n[AGENT PATIENT] Création de l'alerte...", flush=True)
@@ -47,23 +56,31 @@ class MediAlertCrew:
             print("\n[AGENT MÉDECIN URGENCE] Analyse médicale en cours...", flush=True)
             medical_result = self._execute_task('analyse_medicale_d_urgence', inputs, alert_result)
             results['medical'] = medical_result
-            print(f"[AGENT MÉDECIN URGENCE] ✓ Triage: Niveau {medical_result.get('triage_medical', {}).get('niveau_urgence', 'N/A')}", flush=True)
+            triage = medical_result.get('triage_medical', {})
+            print(f"[AGENT MÉDECIN URGENCE] ✓ Niveau d'urgence: {triage.get('niveau_urgence', 'N/A')}", flush=True)
+            print(f"[AGENT MÉDECIN URGENCE] ✓ Score CCMU: {triage.get('score_ccmu', 'N/A')}", flush=True)
+            print(f"[AGENT MÉDECIN URGENCE] ✓ Type de vecteur: {triage.get('type_vecteur', 'N/A')}", flush=True)
             print(f"[AGENT MÉDECIN URGENCE] JSON Output:\n{json.dumps(medical_result, indent=2, ensure_ascii=False)}\n", flush=True)
             
             # Task 3: Coordinator Decision (with hospital search)
             print("\n[AGENT COORDONNATEUR] Sélection hôpital et ambulance...", flush=True)
             coordinator_result = self._execute_coordinator_task(inputs, alert_result, medical_result)
             results['coordinator'] = coordinator_result
-            hospital_name = coordinator_result.get('selected_hospital', {}).get('name', 'N/A')
-            print(f"[AGENT COORDONNATEUR] ✓ Hôpital sélectionné: {hospital_name}", flush=True)
+            hospital = coordinator_result.get('selected_hospital', {})
+            print(f"[AGENT COORDONNATEUR] ✓ Hôpital sélectionné: {hospital.get('name', 'N/A')}", flush=True)
+            print(f"[AGENT COORDONNATEUR] ✓ Distance: {hospital.get('distance_km', 'N/A')} km", flush=True)
+            print(f"[AGENT COORDONNATEUR] ✓ ETA: {hospital.get('eta_minutes', 'N/A')} minutes", flush=True)
+            print(f"[AGENT COORDONNATEUR] ✓ Localisation: {hospital.get('locality', 'N/A')}", flush=True)
             print(f"[AGENT COORDONNATEUR] JSON Output:\n{json.dumps(coordinator_result, indent=2, ensure_ascii=False, default=str)}\n", flush=True)
             
             # Task 4: Ambulance Route Calculation
             print("\n[AGENT AMBULANCE] Calcul de l'itinéraire...", flush=True)
             ambulance_result = self._execute_ambulance_task(inputs, coordinator_result)
             results['ambulance'] = ambulance_result
-            eta = ambulance_result.get('logistique', {}).get('eta_patient_minutes', 'N/A')
-            print(f"[AGENT AMBULANCE] ✓ ETA: {eta} minutes", flush=True)
+            logistique = ambulance_result.get('logistique', {})
+            print(f"[AGENT AMBULANCE] ✓ ETA patient: {logistique.get('eta_patient_minutes', 'N/A')} minutes", flush=True)
+            print(f"[AGENT AMBULANCE] ✓ ETA hôpital: {logistique.get('eta_hopital_minutes', 'N/A')} minutes", flush=True)
+            print(f"[AGENT AMBULANCE] ✓ Distance totale: {logistique.get('distance_totale_km', 'N/A')} km", flush=True)
             print(f"[AGENT AMBULANCE] JSON Output:\n{json.dumps(ambulance_result, indent=2, ensure_ascii=False, default=str)}\n", flush=True)
             
             # Task 5: Hospital Preparation
@@ -87,6 +104,21 @@ class MediAlertCrew:
             print(f"[AGENT ADMINISTRATIF] ✓ Dossier consolidé", flush=True)
             print(f"[AGENT ADMINISTRATIF] JSON Output:\n{json.dumps(ui_result, indent=2, ensure_ascii=False, default=str)}\n", flush=True)
             
+            # Final Summary
+            print("\n" + "="*70, flush=True)
+            print("  ✅ MISSION TERMINÉE - RÉSUMÉ DE L'INTERVENTION", flush=True)
+            print("="*70, flush=True)
+            hospital = results.get('coordinator', {}).get('selected_hospital', {})
+            logistique = results.get('ambulance', {}).get('logistique', {})
+            triage = results.get('medical', {}).get('triage_medical', {})
+            print(f"\nHôpital: {hospital.get('name', 'N/A')}", flush=True)
+            print(f"Distance: {hospital.get('distance_km', 'N/A')} km", flush=True)
+            print(f"ETA Patient: {logistique.get('eta_patient_minutes', 'N/A')} min", flush=True)
+            print(f"ETA Hôpital: {logistique.get('eta_hopital_minutes', 'N/A')} min", flush=True)
+            print(f"Niveau d'urgence: {triage.get('niveau_urgence', 'N/A')}", flush=True)
+            print(f"Type ambulance: {triage.get('type_vecteur', 'N/A')}", flush=True)
+            print("\n" + "="*70 + "\n", flush=True)
+            
             return results
             
         except Exception as e:
@@ -97,7 +129,20 @@ class MediAlertCrew:
         """Execute a single task using Groq LLM"""
         task_config = self.tasks_config[task_name]
         agent_name = task_config['agent']
-        agent_config = self.agents_config[agent_name]
+        
+        # Map task agent names to actual agent config names
+        agent_map = {
+            'agentpatient': 'emetteur_d_alerte',
+            'agentmedecinurgence': 'medical_regulation_ai_triage',
+            'agentcordonnateur': 'operational_regulation_chief',
+            'agentambulence': 'mobile_intervention_pilot',
+            'agenthopital': 'hospital_resource_manager',
+            'agentmedecinspecialiste': 'clinical_protocols_engine',
+            'agentadministratif': 'patient_interface_reporting'
+        }
+        
+        actual_agent_name = agent_map.get(agent_name, agent_name)
+        agent_config = self.agents_config[actual_agent_name]
         
         # Build context from previous results
         context_text = ""
@@ -157,7 +202,7 @@ Please execute this task and provide the output in the exact JSON format specifi
         
         # Execute coordinator task
         task_config = self.tasks_config['triage_patients_et_selection_ambulance']
-        agent_config = self.agents_config['agentcordonnateur']
+        agent_config = self.agents_config['operational_regulation_chief']
         
         prompt = f"""
 Role: {agent_config['role']}
@@ -219,7 +264,7 @@ Please confirm hospital assignment in required JSON format:
         
         # Execute ambulance task
         task_config = self.tasks_config['valider_la_demande_du_coordonnateur']
-        agent_config = self.agents_config['agentambulence']
+        agent_config = self.agents_config['mobile_intervention_pilot']
         
         prompt = f"""
 Role: {agent_config['role']}
@@ -260,7 +305,7 @@ Please provide the logistics information in the required JSON format:
     def _execute_final_task(self, inputs, all_results):
         """Execute final UI consolidation task"""
         task_config = self.tasks_config['consolider_dossier_pour_ui']
-        agent_config = self.agents_config['agentadministratif']
+        agent_config = self.agents_config['patient_interface_reporting']
         
         prompt = f"""
 Role: {agent_config['role']}
