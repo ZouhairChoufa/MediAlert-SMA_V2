@@ -149,39 +149,39 @@ Suivi Live:    Info Patient → Bouton Suivi en Direct
 4. Cliquer sur "Suivi en Direct"
 5. Regarder l'ambulance se déplacer! ✅
 
-## 📱 Pages de l'Application
+##  Pages de l'Application
 
-### 🏠 Dashboard (`/`)
+###  Dashboard (`/`)
 - Statistiques et métriques du système
 - Accès rapide à toutes les fonctionnalités
 - Indicateurs de performance en temps réel
 - Mise en avant des fonctionnalités
 
-### 🆘 Alerte d'Urgence (`/alert`)
+###  Alerte d'Urgence (`/alert`)
 - Créer de nouvelles alertes d'urgence
 - Saisie d'informations patient
 - Description des symptômes
 - Suivi de localisation (IP + Manuel)
 
-### 👥 Informations Patient (`/patient_info`)
+###  Informations Patient (`/patient_info`)
 - Dossiers patients complets
 - Détails d'assignation d'ambulance
 - Informations de destination hospitalière
 - Assignations d'équipe médicale
 
-### 📋 Rapports Médicaux (`/medical_reports`)
+###  Rapports Médicaux (`/medical_reports`)
 - Analyse du médecin urgentiste
 - Plans de traitement spécialisés
 - Rapports PDF téléchargeables
 - Documentation médicale complète
 
-### ⚙️ Panneau Admin (`/admin`)
+###  Panneau Admin (`/admin`)
 - Statut de la flotte d'ambulances
 - Surveillance du réseau hospitalier
 - Personnel médical de garde
 - Métriques et logs système
 
-## 🔌 Points de Terminaison API
+##  Points de Terminaison API
 
 ### Créer une Alerte d'Urgence
 ```http
@@ -337,7 +337,7 @@ medialert_pro/
 └── run.py                        # Point d'entrée application
 ```
 
-## 🎨 Fonctionnalités de Design
+##  Fonctionnalités de Design
 
 - **Mode Sombre/Clair**: Basculement fluide avec persistance localStorage
 - **Thèmes de Carte Synchronisés**: Tuiles CartoDB Dark/Light changent automatiquement
@@ -370,7 +370,7 @@ FLASK_SECRET_KEY=votre_clé_secrète
 FLASK_ENV=development
 ```
 
-## 📊 Métriques Système
+##  Métriques Système
 
 - **Temps de Réponse Moyen**: 8 minutes
 - **Disponibilité Système**: 99.8%
@@ -378,7 +378,7 @@ FLASK_ENV=development
 - **Traitement IA**: Temps réel
 - **Limite Taux API**: 1000 requêtes/heure
 
-## 🛡️ Fonctionnalités de Sécurité
+##  Fonctionnalités de Sécurité
 
 - Authentification par clé API
 - Limitation de taux
@@ -388,7 +388,7 @@ FLASK_ENV=development
 - Environnement virtuel isolé
 - Gestion des secrets
 
-## 💻 Stack Technique
+##  Stack Technique
 
 ### Backend
 - **Flask 3.0**: Framework web Python
@@ -414,7 +414,7 @@ FLASK_ENV=development
 - **Git**: Contrôle version
 - **Docker**: Conteneurisation (optionnel)
 
-## 🤝 Contribution
+##  Contribution
 
 Nous accueillons les contributions! Veuillez suivre ces étapes:
 
@@ -424,18 +424,18 @@ Nous accueillons les contributions! Veuillez suivre ces étapes:
 4. Push vers la branche (`git push origin feature/FonctionnaliteIncroyable`)
 5. Ouvrir une Pull Request
 
-## 📄 Licence
+##  Licence
 
 Ce projet est sous licence MIT - voir le fichier [LICENSE](LICENSE) pour détails.
 
-## 🆘 Support
+##  Support
 
 - **Documentation**: [Docs Projet](docs/)
 - **GitHub Issues**: [Signaler un bug](https://github.com/votre-repo/medialert-sma/issues)
 - **LangChain Docs**: [Documentation LangChain](https://python.langchain.com/)
 - **Groq Docs**: [Documentation Groq](https://console.groq.com/docs)
 
-## 🌟 Remerciements
+##  Remerciements
 
 - **LangChain**: Pour le puissant framework multi-agents
 - **Groq**: Pour l'inférence IA rapide
@@ -444,7 +444,7 @@ Ce projet est sous licence MIT - voir le fichier [LICENSE](LICENSE) pour détail
 - **AbstractAPI**: Pour la géolocalisation IP
 - **OpenStreetMap**: Pour les données cartographiques
 
-## 🚀 Feuille de Route
+##  Feuille de Route
 
 ### ✅ Complété
 - [x] **Système Multi-Agents IA** - 7 agents spécialisés
@@ -459,7 +459,7 @@ Ce projet est sous licence MIT - voir le fichier [LICENSE](LICENSE) pour détail
 - [x] **Géolocalisation IP** - Détection automatique localisation
 - [x] **Environnement Virtuel** - Isolation dépendances
 
-### 🔄 À Venir
+###  À Venir
 - [ ] Intégration GPS réelle
 - [ ] Application mobile
 - [ ] Support multi-langues
@@ -469,7 +469,7 @@ Ce projet est sous licence MIT - voir le fichier [LICENSE](LICENSE) pour détail
 - [ ] Système facturation automatisé
 - [ ] Notifications push temps réel
 
-## 📚 Documentation
+##  Documentation
 
 ### Démarrage Rapide
 - **[VIRTUAL_ENVIRONMENT_SETUP.md](docs/VIRTUAL_ENVIRONMENT_SETUP.md)** - Guide setup environnement
@@ -517,7 +517,7 @@ Ce projet est sous licence MIT - voir le fichier [LICENSE](LICENSE) pour détail
 - ✅ Temps réponse < 2s
 - ✅ Environnement virtuel isolé
 
-## 💰 Valeur Business
+## Valeur Business
 
 ### Économies de Coûts
 - **Réduction 60%** volume appels non-critiques

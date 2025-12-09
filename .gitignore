@@ -50,6 +50,8 @@ Thumbs.db
 # Database
 *.db
 *.sqlite
+data/users.json
+data/patients.json
 
 # Temporary files
 *.tmp

@@ -1,12 +1,12 @@
-# MediAlert Pro v2.0 🚑
+# MediAlert SMA v2.0 
 
 **Enterprise-Grade Emergency Response System**
 
 A production-ready, AI-powered emergency dispatch system combining multi-agent intelligence, real-time logistics, and professional medical interfaces.
 
-## 🏗️ Architecture Overview
+##  Architecture Overview
 
-MediAlert Pro orchestrates **7 specialized AI agents** using CrewAI to handle the complete emergency response workflow:
+MediAlert SMA orchestrates **7 specialized AI agents** using CrewAI to handle the complete emergency response workflow:
 
 1. **Patient Agent** - Structured data capture
 2. **Medical Triage Agent** - Severity assessment & resource recommendation  
@@ -16,7 +16,7 @@ MediAlert Pro orchestrates **7 specialized AI agents** using CrewAI to handle th
 6. **Specialist Agent** - Clinical protocols & checklists
 7. **Administrative Agent** - Patient communication & reporting
 
-## 🚀 Key Features
+##  Key Features
 
 ### Multi-Agent AI Decision Making
 - **Medical Triage**: Automated severity scoring (CCMU/ESI)
@@ -38,7 +38,7 @@ MediAlert Pro orchestrates **7 specialized AI agents** using CrewAI to handle th
 - **Status Panels**: Current alerts, ETA counters, hospital info
 - **Recent Alerts**: Historical data with severity indicators
 
-## 🛠️ Technical Stack
+##  Technical Stack
 
 - **Backend**: Python 3.10+, Flask (App Factory Pattern)
 - **AI Engine**: CrewAI + Groq API (llama-3.3-70b)
@@ -50,7 +50,7 @@ MediAlert Pro orchestrates **7 specialized AI agents** using CrewAI to handle th
 ## 📁 Project Structure
 
 ```
-medialert_pro/
+medialert_sma/
 ├── app/
 │   ├── config.py                 # Environment configuration
 │   ├── services/                 # Core business logic
@@ -83,12 +83,12 @@ medialert_pro/
 └── run.py                      # Application entry point
 ```
 
-## 🔧 Installation & Setup
+##  Installation & Setup
 
 ### 1. Environment Setup
 ```bash
 # Clone and navigate
-cd medialert_pro
+cd medialert_sma
 
 # Install dependencies
 pip install -r requirements.txt
@@ -119,7 +119,7 @@ python run.py
 
 Access dashboard at: `http://localhost:5000`
 
-## 🎯 API Endpoints
+##  API Endpoints
 
 ### Core Emergency API
 - `POST /api/alert` - Create new emergency alert
@@ -135,7 +135,7 @@ Access dashboard at: `http://localhost:5000`
 - `GET /dashboard` - Main control center
 - `GET /alert` - Emergency alert form (with IP geolocation)
 
-## 🤖 AI Agent Workflow
+##  AI Agent Workflow
 
 ### Sequential Processing Flow:
 1. **Alert Creation** → Structured data capture
@@ -150,7 +150,7 @@ Access dashboard at: `http://localhost:5000`
 - **HospitalSearchTool**: Bound to Coordinator Agent
 - **RouteCalculationTool**: Bound to Ambulance Agent
 
-## 🗺️ Map Features
+##  Map Features
 
 ### Real-time Ambulance Tracking
 - **Polyline Routes**: Actual road paths from ORS
@@ -163,7 +163,7 @@ Access dashboard at: `http://localhost:5000`
 - **Specialty Filtering**: Emergency, Cardiology, Surgery, etc.
 - **Distance Calculation**: Geodesic distance with traffic consideration
 
-## 💬 MediBot Capabilities
+##  MediBot Capabilities
 
 ### Intelligent Conversations
 - **Medical Knowledge**: Groq-powered responses
@@ -176,7 +176,7 @@ Access dashboard at: `http://localhost:5000`
 - "difficulté respirer" → Emergency protocol
 - "perte de conscience" → Critical response
 
-## 🔒 Production Considerations
+##  Production Considerations
 
 ### Security
 - Environment variable configuration
@@ -196,7 +196,7 @@ Access dashboard at: `http://localhost:5000`
 - Error handling & fallbacks
 - Performance metrics ready
 
-## 🎨 UI/UX Design
+##  UI/UX Design
 
 ### Professional Medical Theme
 - **Dark Sidebar**: Medical professional aesthetic
@@ -211,7 +211,7 @@ Access dashboard at: `http://localhost:5000`
 - **Status Indicators**: Pulsing animations
 - **Progress Tracking**: Visual workflow states
 
-## 📊 Sample Data
+##  Sample Data
 
 The system includes realistic sample data for Morocco:
 - **10 Major Hospitals**: From Casablanca to Marrakech
@@ -219,7 +219,7 @@ The system includes realistic sample data for Morocco:
 - **Geographic Distribution**: Major cities covered
 - **Coordinate Accuracy**: Real GPS locations
 
-## 🚀 Deployment Ready
+##  Deployment Ready
 
 ### Production Checklist
 - ✅ Environment configuration
@@ -240,4 +240,4 @@ The system includes realistic sample data for Morocco:
 
 ---
 
-**MediAlert Pro v2.0** - Saving lives through intelligent emergency response. 🏥❤️
+**MediAlert SMA v2.0** - Saving lives through intelligent emergency response. ❤️

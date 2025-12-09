@@ -1,10 +1,12 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash, session
 from app.decorators import login_required
 from app.models.patient import PatientStore
-from app.routes.api import alert_storage
+from app.services.firebase_service import FirebaseService
 
 patient_bp = Blueprint('patient', __name__)
 patient_store = PatientStore()
+firebase_service = FirebaseService()
+alerts_collection = firebase_service.get_collection('alerts')
 
 @patient_bp.route('/profile')
 @login_required
@@ -72,7 +74,10 @@ def alerts_history():
     if not patient:
         return redirect(url_for('patient.profile'))
     
-    return render_template('patient/alerts_history.html', patient=patient)
+    # Fetch user's alerts from Firestore
+    alerts = [doc.to_dict() | {'alert_id': doc.id} for doc in alerts_collection.where('username', '==', username).stream()]
+    
+    return render_template('patient/alerts_history.html', patient=patient, alerts=alerts)
 
 @patient_bp.route('/alert/<alert_id>')
 @login_required
@@ -83,11 +88,11 @@ def alert_detail(alert_id):
     if not patient:
         return redirect(url_for('patient.profile'))
     
-    # Find alert in patient's history
-    alert = next((a for a in patient.alerts if a.get('alert_id') == alert_id), None)
-    
-    if not alert:
+    # Fetch alert from Firestore
+    doc = alerts_collection.document(alert_id).get()
+    if not doc.exists or doc.to_dict().get('username') != username:
         flash('Alerte non trouvée', 'error')
         return redirect(url_for('patient.alerts_history'))
     
+    alert = doc.to_dict() | {'alert_id': alert_id}
     return render_template('patient/alert_detail.html', alert=alert, patient=patient)

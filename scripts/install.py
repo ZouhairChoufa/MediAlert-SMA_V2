@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Installation script for MediAlert Pro v2.0
+Installation script for MediAlert SMA v2.0
 """
 import subprocess
 import sys
@@ -8,7 +8,7 @@ import os
 
 def install_dependencies():
     """Install required dependencies"""
-    print("Installing MediAlert Pro v2.0 dependencies...")
+    print("Installing MediAlert SMA v2.0 dependencies...")
     
     try:
         subprocess.check_call([sys.executable, "-m", "pip", "install", "-r", "requirements_fixed.txt"])
@@ -38,7 +38,7 @@ def setup_environment():
 
 def main():
     """Main installation process"""
-    print("MediAlert Pro v2.0 Installation")
+    print("MediAlert SMA v2.0 Installation")
     print("=" * 40)
     
     if install_dependencies():

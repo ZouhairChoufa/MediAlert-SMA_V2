@@ -1,4 +1,4 @@
-# Virtual Environment Setup - MediAlert Pro v2.0
+# Virtual Environment Setup - MediAlert SMA v2.0
 
 ## What Was Done
 
@@ -160,4 +160,4 @@ Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
    pip install -r scripts\requirements_fixed.txt --upgrade
    ```
 
-The virtual environment ensures a clean, isolated, and reproducible development environment for MediAlert Pro v2.0.
+The virtual environment ensures a clean, isolated, and reproducible development environment for MediAlert SMA v2.0.

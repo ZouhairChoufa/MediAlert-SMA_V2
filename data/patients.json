@@ -13,5 +13,20 @@
     ],
     "medical_history": [],
     "alerts": []
+  },
+  "zouhair": {
+    "username": "zouhair",
+    "nom_prenom": "Zouhair CHOUFA ",
+    "age": 35,
+    "sexe": "M",
+    "email": "zouhair.choufa3@gmail.com",
+    "phone": "0707864014",
+    "address": "Sidi Moussa, El Jadida, Maroc",
+    "blood_type": "A+",
+    "allergies": [
+      "NONE"
+    ],
+    "medical_history": [],
+    "alerts": []
   }
 }

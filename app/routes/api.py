@@ -4,7 +4,7 @@ import uuid
 import sys
 import json
 from app.services.firebase_service import FirebaseService
-# Updated import to use the correct Crew class
+from app.services.system_logs_service import SystemLogsService
 from app.crew.crew import SystemeUrgencesMedicalesCrew
 from app.services.geolocation import GeolocationService
 from app.services.smart_dispatch import SmartDispatchEngine
@@ -12,10 +12,10 @@ from app.decorators import login_required
 
 api_bp = Blueprint('api', __name__)
 
-# Store alert data temporarily
-alert_storage = {}
-
 # Initialize services
+firebase_service = FirebaseService()
+alerts_collection = firebase_service.get_collection('alerts')
+logs_service = SystemLogsService()
 geolocation_service = GeolocationService()
 smart_dispatch = SmartDispatchEngine()
 
@@ -65,24 +65,31 @@ def create_alert():
         # Generate alert ID
         alert_id = str(uuid.uuid4())[:8]
         
-        # Store alert data
-        alert_storage[alert_id] = {
+        # Store alert data in Firestore
+        alert_data = {
             'patient': data,
             'location': location,
             'dispatch': dispatch_result,
             'status': 'processing',
-            'logs': []
+            'logs': [],
+            'username': session.get('user'),
+            'created_at': firestore.SERVER_TIMESTAMP
         }
+        alerts_collection.document(alert_id).set(alert_data)
+        
+        # Log alert creation
+        logs_service.log_event('alert_created', f'New alert created: {alert_id}', session.get('user'), {'alert_id': alert_id, 'patient': data.get('nom_prenom')})
         
         # Trigger crew processing in background
         def process_crew():
             try:
                 print(f"\n[AGENT] Starting crew processing for alert {alert_id}", flush=True)
                 sys.stdout.flush()
-                alert_storage[alert_id]['logs'].append('[SYSTEM] Initialisation crew...')
+                
+                doc_ref = alerts_collection.document(alert_id)
+                doc_ref.update({'logs': firestore.ArrayUnion(['[SYSTEM] Initialisation crew...'])})
                 
                 # Create inputs for the Crew
-                # We map the data to the variables expected in tasks.yaml ({nom_prenom}, etc.)
                 crew_inputs = {
                     'nom_prenom': data.get('nom_prenom'),
                     'age': data.get('age'),
@@ -96,21 +103,24 @@ def create_alert():
                 crew = SumiSystemeUrgenceMedicaleIntelligentCrew().crew()
                 result = crew.kickoff(inputs=crew_inputs)
                 
-                # --- PRINT RESULT TO TERMINAL ---
                 print("\n" + "="*50)
                 print(f"✅ FINAL CREW OUTPUT for Alert {alert_id}:")
                 print("="*50)
                 print(result)
                 print("="*50 + "\n", flush=True)
-                # --------------------------------
                 
-                alert_storage[alert_id]['result'] = str(result)
-                alert_storage[alert_id]['status'] = 'completed'
+                doc_ref.update({
+                    'result': str(result),
+                    'status': 'completed'
+                })
+                logs_service.log_event('alert_completed', f'Alert processing completed: {alert_id}', session.get('user'), {'alert_id': alert_id})
                 print(f"[AGENT] Crew processing completed for alert {alert_id}", flush=True)
                 
             except Exception as e:
-                alert_storage[alert_id]['status'] = 'error'
-                alert_storage[alert_id]['error'] = str(e)
+                alerts_collection.document(alert_id).update({
+                    'status': 'error',
+                    'error': str(e)
+                })
                 print(f"[ERROR] Crew processing failed: {e}", flush=True)
                 sys.stdout.flush()
         
@@ -133,8 +143,9 @@ def create_alert():
 @login_required
 def get_alert_data(alert_id):
     """Get alert data for tracking page"""
-    if alert_id in alert_storage:
-        return jsonify(alert_storage[alert_id])
+    doc = alerts_collection.document(alert_id).get()
+    if doc.exists:
+        return jsonify(doc.to_dict())
     return jsonify({'error': 'Alert not found'}), 404
 
 @api_bp.route('/status/<alert_id>')

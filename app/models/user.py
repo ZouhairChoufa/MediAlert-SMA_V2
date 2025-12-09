@@ -1,7 +1,6 @@
 from werkzeug.security import generate_password_hash, check_password_hash
 from datetime import datetime
-import json
-import os
+from app.services.firebase_service import FirebaseService
 
 class User:
     def __init__(self, username, email, password_hash, role='user', created_at=None):
@@ -34,43 +33,45 @@ class User:
         )
 
 class UserStore:
-    def __init__(self, filepath='data/users.json'):
-        self.filepath = filepath
-        self._ensure_file_exists()
-    
-    def _ensure_file_exists(self):
-        os.makedirs(os.path.dirname(self.filepath), exist_ok=True)
-        if not os.path.exists(self.filepath):
-            with open(self.filepath, 'w') as f:
-                json.dump({}, f)
-    
-    def _load_users(self):
-        with open(self.filepath, 'r') as f:
-            data = json.load(f)
-            return {k: User.from_dict(v) for k, v in data.items()}
-    
-    def _save_users(self, users):
-        with open(self.filepath, 'w') as f:
-            data = {k: v.to_dict() for k, v in users.items()}
-            json.dump(data, f, indent=2)
+    def __init__(self):
+        self.firebase = FirebaseService()
+        self.collection = self.firebase.get_collection('users')
     
     def create_user(self, username, email, password, role='user'):
-        users = self._load_users()
-        if username in users:
+        if self.collection.document(username).get().exists:
             return None
         
         password_hash = generate_password_hash(password)
         user = User(username, email, password_hash, role)
-        users[username] = user
-        self._save_users(users)
+        self.collection.document(username).set(user.to_dict())
         return user
     
     def get_user(self, username):
-        users = self._load_users()
-        return users.get(username)
+        doc = self.collection.document(username).get()
+        if doc.exists:
+            return User.from_dict(doc.to_dict())
+        return None
     
     def authenticate(self, username, password):
         user = self.get_user(username)
         if user and user.check_password(password):
             return user
         return None
+    
+    def get_all_users(self):
+        docs = self.collection.stream()
+        return [User.from_dict(doc.to_dict()) for doc in docs]
+    
+    def update_user_role(self, username, new_role):
+        doc_ref = self.collection.document(username)
+        if doc_ref.get().exists:
+            doc_ref.update({'role': new_role})
+            return True
+        return False
+    
+    def delete_user(self, username):
+        doc_ref = self.collection.document(username)
+        if doc_ref.get().exists:
+            doc_ref.delete()
+            return True
+        return False

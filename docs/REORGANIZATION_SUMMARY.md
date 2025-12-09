@@ -1,4 +1,4 @@
-# MediAlert Pro v2.0 - File Reorganization Summary
+# MediAlert SMA v2.0 - File Reorganization Summary
 
 ## What Was Reorganized
 

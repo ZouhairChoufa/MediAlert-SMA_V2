@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Test script to verify MediAlert Pro v2.0 installation
+Test script to verify MediAlert SMA v2.0 installation
 """
 
 def test_imports():
@@ -105,7 +105,7 @@ def test_flask_app():
 
 def main():
     """Run all tests"""
-    print("MediAlert Pro v2.0 Installation Test")
+    print("MediAlert SMA v2.0 Installation Test")
     print("=" * 50)
     
     tests = [
@@ -131,7 +131,7 @@ def main():
     print(f"Test Results: {passed}/{total} tests passed")
     
     if passed == total:
-        print("SUCCESS: All tests passed! MediAlert Pro v2.0 is ready to run.")
+        print("SUCCESS: All tests passed! MediAlert SMA v2.0 is ready to run.")
         print("\nNext steps:")
         print("1. Add your API keys to .env file")
         print("2. Set up Firebase credentials")

@@ -1,4 +1,4 @@
-# MediAlert Pro v2.0 - Project Structure
+# MediAlert SMA v2.0 - Project Structure
 
 ## Directory Organization
 

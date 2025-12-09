@@ -1,8 +1,10 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash, session
 from app.models.user import UserStore
+from app.services.system_logs_service import SystemLogsService
 
 auth_bp = Blueprint('auth', __name__)
 user_store = UserStore()
+logs_service = SystemLogsService()
 
 @auth_bp.route('/login', methods=['GET', 'POST'])
 def login():
@@ -14,6 +16,7 @@ def login():
         if user:
             session['user'] = username
             session['role'] = user.role
+            logs_service.log_event('login', f'User {username} logged in', username)
             flash('Connexion réussie!', 'success')
             return redirect(url_for('web.index'))
         
@@ -35,6 +38,7 @@ def register():
         
         user = user_store.create_user(username, email, password)
         if user:
+            logs_service.log_event('register', f'New user registered: {username}', username)
             flash('Compte créé avec succès! Connectez-vous.', 'success')
             return redirect(url_for('auth.login'))
         
@@ -44,6 +48,9 @@ def register():
 
 @auth_bp.route('/logout')
 def logout():
+    username = session.get('user')
+    if username:
+        logs_service.log_event('logout', f'User {username} logged out', username)
     session.clear()
     flash('Déconnexion réussie', 'success')
     return redirect(url_for('auth.login'))
