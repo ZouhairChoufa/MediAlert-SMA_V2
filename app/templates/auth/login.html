@@ -31,7 +31,7 @@
             {% endwith %}
 
             <!-- Login Form -->
-            <form class="mt-8 space-y-6" method="POST">
+            <form class="mt-8 space-y-6" method="POST" onkeypress="if(event.key==='Enter'){event.preventDefault();this.submit();}">
                 <div class="rounded-2xl bg-slate-800/50 backdrop-blur-xl border border-cyan-500/20 p-8 shadow-xl">
                     <div class="space-y-4">
                         <div>
@@ -47,13 +47,19 @@
                             <label for="password" class="block text-sm font-medium text-slate-300 mb-2">
                                 <i class="fas fa-lock mr-2"></i>Mot de passe
                             </label>
-                            <input id="password" name="password" type="password" required
-                                class="w-full bg-slate-900/50 border border-cyan-500/20 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-cyan-500/50 transition-all"
-                                placeholder="Entrez votre mot de passe">
+                            <div class="relative">
+                                <input id="password" name="password" type="password" required
+                                    class="w-full bg-slate-900/50 border border-cyan-500/20 rounded-lg px-4 py-3 pr-12 text-white focus:outline-none focus:border-cyan-500/50 transition-all"
+                                    placeholder="Entrez votre mot de passe"
+                                    onkeypress="if(event.key==='Enter'){event.preventDefault();this.form.submit();}">
+                                <button type="button" onclick="togglePassword()" class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-cyan-400 transition-colors">
+                                    <i class="fas fa-eye" id="toggleIcon"></i>
+                                </button>
+                            </div>
                         </div>
                     </div>
 
-                    <button type="submit"
+                    <button type="submit" id="loginBtn"
                         class="w-full mt-6 bg-gradient-to-r from-cyan-500 to-blue-600 text-white font-semibold py-3 px-4 rounded-lg hover:shadow-lg hover:shadow-cyan-500/50 transition-all duration-300">
                         <i class="fas fa-sign-in-alt mr-2"></i>Se connecter
                     </button>
@@ -67,5 +73,18 @@
             </form>
         </div>
     </div>
+    <script>
+    function togglePassword() {
+        const input = document.getElementById('password');
+        const icon = document.getElementById('toggleIcon');
+        if (input.type === 'password') {
+            input.type = 'text';
+            icon.classList.replace('fa-eye', 'fa-eye-slash');
+        } else {
+            input.type = 'password';
+            icon.classList.replace('fa-eye-slash', 'fa-eye');
+        }
+    }
+    </script>
 </body>
 </html>

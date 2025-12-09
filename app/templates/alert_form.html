@@ -183,11 +183,14 @@ form.addEventListener('submit', async (e) => {
     }
 });
 
-form.addEventListener('keypress', (e) => {
-    if (e.key === 'Enter' && e.target.tagName !== 'TEXTAREA') {
-        e.preventDefault();
-        form.requestSubmit();
-    }
+// Handle Enter key on all inputs except textarea
+document.querySelectorAll('#alertForm input, #alertForm select').forEach(input => {
+    input.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            form.requestSubmit();
+        }
+    });
 });
 </script>
 {% endblock %}

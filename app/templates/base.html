@@ -34,26 +34,48 @@
 <body class="h-full bg-slate-950 text-slate-200 overflow-hidden">
     <div class="flex h-full">
         <!-- Sidebar -->
-        <aside class="w-20 bg-slate-900/50 backdrop-blur-xl border-r border-cyan-500/20 flex flex-col items-center py-6 space-y-8">
+        <aside class="w-20 bg-slate-900/50 backdrop-blur-xl border-r border-cyan-500/20 flex flex-col items-center py-6 space-y-8 relative z-[60] overflow-visible">
             <!-- Logo -->
             <a href="/" class="w-12 h-12 rounded-lg bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center shadow-lg shadow-cyan-500/50 hover:scale-110 transition-transform cursor-pointer" title="Accueil">
                 <i class="fas fa-heart-pulse text-white text-xl"></i>
             </a>
             
-            <!-- Nav Items -->
-            <nav class="flex-1 flex flex-col space-y-4">
-                <a href="/" class="nav-item {% if request.path == '/' %}active{% endif %}" title="Dashboard">
-                    <i class="fas fa-chart-line"></i>
-                </a>
-                <a href="/alert" class="nav-item {% if request.path == '/alert' %}active{% endif %}" title="Nouvelle Alerte">
-                    <i class="fas fa-plus-circle"></i>
-                </a>
-                <a href="/patient/profile" class="nav-item {% if '/patient' in request.path %}active{% endif %}" title="Mon Profil">
-                    <i class="fas fa-user"></i>
-                </a>
-                <a href="/admin" class="nav-item" title="Admin">
-                    <i class="fas fa-cog"></i>
-                </a>
+            <nav class="flex-1 flex flex-col space-y-4 overflow-visible">
+                <div class="relative group flex justify-center">
+                    <a href="/" class="nav-item {% if request.path == '/' %}active{% endif %}">
+                        <i class="fas fa-chart-line"></i>
+                    </a>
+                    <span class="absolute left-full top-1/2 -translate-y-1/2 ml-4 px-3 py-2 bg-slate-800 text-white text-sm font-medium rounded-lg whitespace-nowrap opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 shadow-2xl border border-cyan-500/30 pointer-events-none">
+                        Dashboard
+                    </span>
+                </div>
+
+                <div class="relative group flex justify-center">
+                    <a href="/alert" class="nav-item {% if request.path == '/alert' %}active{% endif %}">
+                        <i class="fas fa-plus-circle"></i>
+                    </a>
+                    <span class="absolute left-full top-1/2 -translate-y-1/2 ml-4 px-3 py-2 bg-slate-800 text-white text-sm font-medium rounded-lg whitespace-nowrap opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 shadow-2xl border border-cyan-500/30 pointer-events-none">
+                        Nouvelle Alerte
+                    </span>
+                </div>
+
+                <div class="relative group flex justify-center">
+                    <a href="/patient/profile" class="nav-item {% if '/patient' in request.path %}active{% endif %}">
+                        <i class="fas fa-user"></i>
+                    </a>
+                    <span class="absolute left-full top-1/2 -translate-y-1/2 ml-4 px-3 py-2 bg-slate-800 text-white text-sm font-medium rounded-lg whitespace-nowrap opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 shadow-2xl border border-cyan-500/30 pointer-events-none">
+                        Mon Profil
+                    </span>
+                </div>
+
+                <div class="relative group flex justify-center">
+                    <a href="/admin" class="nav-item">
+                        <i class="fas fa-cog"></i>
+                    </a>
+                    <span class="absolute left-full top-1/2 -translate-y-1/2 ml-4 px-3 py-2 bg-slate-800 text-white text-sm font-medium rounded-lg whitespace-nowrap opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 shadow-2xl border border-cyan-500/30 pointer-events-none">
+                        Admin
+                    </span>
+                </div>
             </nav>
             
             <!-- System Status -->
@@ -68,7 +90,7 @@
         </aside>
 
         <!-- Main Content -->
-        <main class="flex-1 flex flex-col overflow-hidden">
+        <main class="flex-1 flex flex-col overflow-hidden relative z-10">
             <!-- Top Bar -->
             <header class="h-16 bg-slate-900/30 backdrop-blur-xl border-b border-cyan-500/20 px-6 flex items-center justify-between">
                 <div class="flex items-center space-x-6">
@@ -98,8 +120,8 @@
                         </a>
                     </div>
                     {% else %}
-                    <a href="{{ url_for('auth.login') }}" class="text-sm text-cyan-400 hover:text-cyan-300">
-                        <i class="fas fa-sign-in-alt mr-1"></i>Connexion
+                    <a href="{{ url_for('auth.login') }}" class="text-xl font-bold text-cyan-400 hover:text-cyan-300 flex items-center">
+                        <i class="fas fa-sign-in-alt mr-2"></i>Connexion                    
                     </a>
                     {% endif %}
                 </div>

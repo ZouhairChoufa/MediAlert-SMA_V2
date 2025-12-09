@@ -1,6 +1,6 @@
 from flask import Blueprint, request, jsonify
 from groq import Groq
-from app.config import Config
+from app.config_settings import Config
 
 chat_bp = Blueprint('chat', __name__)
 

@@ -6,7 +6,7 @@ load_dotenv()
 class Config:
     SECRET_KEY = os.environ.get('FLASK_SECRET_KEY') or 'dev-secret-key'
     GROQ_API_KEY = os.environ.get('GROQ_API_KEY')
-    ORS_API_KEY = os.environ.get('ORS_API_KEY')
+    ORS_API_KEY = os.environ.get('ORS_API_KEY') or 'eyJvcmciOiI1YjNjZTM1OTc4NTExMTAwMDFjZjYyNDgiLCJpZCI6IjY2NWQzMDlmMTRmNzk1YzMzOGIyNTYwZTVkZDU2ZTE3ZDhkMjQzYzRjZDQ2NTBmNGNkN2I5MWJhIiwiaCI6Im11cm11cjY0In0=' 
     ABSTRACT_API_KEY = os.environ.get('ABSTRACT_API_KEY')
     FIREBASE_CREDENTIALS_PATH = os.environ.get('FIREBASE_CREDENTIALS_PATH') or 'config/firebase-credentials.json'
     

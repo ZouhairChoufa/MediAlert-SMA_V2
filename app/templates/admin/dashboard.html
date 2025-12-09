@@ -47,7 +47,7 @@
     <!-- Management Sections -->
     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
         <!-- User Management -->
-        <div class="glass-panel p-6 rounded-xl border border-cyan-500/20">
+        <div class="glass-panel p-6 rounded-xl border border-cyan-500/20 overflow-visible">
             <div class="flex items-center justify-between mb-6">
                 <h3 class="text-xl font-semibold text-cyan-400">
                     <i class="fas fa-users-cog mr-2"></i>Gestion Utilisateurs ({{ users|length }})
@@ -55,8 +55,8 @@
                 <button onclick="toggleCreateUser()" class="px-4 py-2 bg-cyan-500/20 text-cyan-400 rounded-lg hover:bg-cyan-500/30 transition-all text-sm">
                     <i class="fas fa-plus mr-1"></i>Nouveau
                 </button>
-            </div>
-            
+                </div>
+                
             <!-- Create User Form -->
             <div id="createUserForm" class="hidden mb-4 p-4 bg-slate-800/50 rounded-lg">
                 <form method="POST" action="{{ url_for('admin.create_user') }}">
@@ -65,7 +65,12 @@
                         <input type="email" name="email" placeholder="Email" required class="bg-slate-900/50 border border-cyan-500/20 rounded-lg px-3 py-2 text-sm">
                     </div>
                     <div class="grid grid-cols-2 gap-3 mb-3">
-                        <input type="password" name="password" placeholder="Mot de passe" required class="bg-slate-900/50 border border-cyan-500/20 rounded-lg px-3 py-2 text-sm">
+                        <div class="relative">
+                            <input type="password" id="adminPassword" name="password" placeholder="Mot de passe" required class="bg-slate-900/50 border border-cyan-500/20 rounded-lg px-3 py-2 pr-10 text-sm w-full">
+                            <button type="button" onclick="togglePassword('adminPassword', this)" class="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-cyan-400">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                        </div>
                         <select name="role" class="bg-slate-900/50 border border-cyan-500/20 rounded-lg px-3 py-2 text-sm">
                             <option value="user">Utilisateur</option>
                             <option value="admin">Administrateur</option>
@@ -83,9 +88,9 @@
             </div>
             
             <!-- Users List -->
-            <div class="space-y-3 max-h-96 overflow-y-auto">
+            <div class="space-y-3 max-h-[240px] overflow-y-auto custom-scrollbar" style="overflow-x: visible;">
                 {% for user in users %}
-                <div class="flex items-center justify-between p-3 bg-slate-800/30 rounded-lg">
+                <div class="flex items-center justify-between p-3 rounded-lg transition-all duration-200 hover:bg-cyan-500/10 active:scale-[0.98] cursor-pointer">
                     <div class="flex items-center space-x-3">
                         <div class="w-10 h-10 rounded-full bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center">
                             <i class="fas fa-user text-white text-sm"></i>
@@ -100,20 +105,20 @@
                             {{ user.role|capitalize }}
                         </span>
                         <div class="relative">
-                            <button onclick="toggleMenu('{{ user.username }}')" class="p-2 hover:bg-slate-700/50 rounded-lg">
+                            <button onclick="toggleMenu(event, '{{ user.username }}')" class="p-2 hover:bg-slate-700/50 rounded-lg">
                                 <i class="fas fa-ellipsis-v text-slate-400"></i>
                             </button>
-                            <div id="menu-{{ user.username }}" class="hidden absolute right-0 mt-2 w-48 bg-slate-800 rounded-lg shadow-xl border border-cyan-500/20 z-10">
+                            <div id="menu-{{ user.username }}" class="hidden absolute right-0 top-full mt-2 w-48 bg-slate-800/95 backdrop-blur-sm rounded-lg shadow-2xl border border-cyan-500/20 z-50">
                                 <form method="POST" action="{{ url_for('admin.update_role', username=user.username) }}">
                                     <input type="hidden" name="role" value="{% if user.role == 'admin' %}user{% else %}admin{% endif %}">
-                                    <button type="submit" class="w-full text-left px-4 py-2 text-sm text-white hover:bg-slate-700/50">
+                                    <button type="submit" class="w-full text-left px-4 py-2 text-sm text-white hover:bg-slate-700/50 rounded-t-lg transition-colors">
                                         <i class="fas fa-{% if user.role == 'admin' %}user{% else %}user-shield{% endif %} mr-2"></i>
                                         {% if user.role == 'admin' %}Retirer admin{% else %}Promouvoir admin{% endif %}
                                     </button>
                                 </form>
                                 {% if user.username != session.get('user') %}
-                                <form method="POST" action="{{ url_for('admin.delete_user', username=user.username) }}" onsubmit="return confirm('Supprimer cet utilisateur?')">
-                                    <button type="submit" class="w-full text-left px-4 py-2 text-sm text-red-400 hover:bg-slate-700/50">
+                                <form method="POST" action="{{ url_for('admin.delete_user', username=user.username) }}" id="deleteForm-{{ user.username }}">
+                                    <button type="button" onclick="showDeleteModal('{{ user.username }}')" class="w-full text-left px-4 py-2 text-sm text-red-400 hover:bg-slate-700/50 rounded-b-lg transition-colors">
                                         <i class="fas fa-trash mr-2"></i>Supprimer
                                     </button>
                                 </form>
@@ -134,21 +139,21 @@
                 </h3>
             </div>
             <div class="space-y-3">
-                <div class="flex items-center justify-between p-3 bg-slate-800/30 rounded-lg">
+                <div class="flex items-center justify-between p-3 rounded-lg transition-all duration-200 hover:bg-cyan-500/10 active:scale-[0.98] cursor-pointer">
                     <div class="flex items-center space-x-3">
                         <i class="fas fa-robot text-cyan-400"></i>
                         <span class="text-sm text-white">Agents IA</span>
                     </div>
                     <span class="text-green-400 text-sm">7/7 Actifs</span>
                 </div>
-                <div class="flex items-center justify-between p-3 bg-slate-800/30 rounded-lg">
+                <div class="flex items-center justify-between p-3 rounded-lg transition-all duration-200 hover:bg-cyan-500/10 active:scale-[0.98] cursor-pointer">
                     <div class="flex items-center space-x-3">
                         <i class="fas fa-database text-blue-400"></i>
                         <span class="text-sm text-white">Base de données</span>
                     </div>
                     <span class="text-green-400 text-sm">Opérationnelle</span>
                 </div>
-                <div class="flex items-center justify-between p-3 bg-slate-800/30 rounded-lg">
+                <div class="flex items-center justify-between p-3 rounded-lg transition-all duration-200 hover:bg-cyan-500/10 active:scale-[0.98] cursor-pointer">
                     <div class="flex items-center space-x-3">
                         <i class="fas fa-map-marked-alt text-purple-400"></i>
                         <span class="text-sm text-white">Services de carte</span>
@@ -164,9 +169,9 @@
         <h3 class="text-xl font-semibold text-cyan-400 mb-6">
             <i class="fas fa-history mr-2"></i>Activité Récente
         </h3>
-        <div class="space-y-3">
+        <div class="space-y-3 max-h-[700px] overflow-y-auto custom-scrollbar">
             {% for log in recent_logs %}
-            <div class="flex items-center space-x-4 p-3 bg-slate-800/30 rounded-lg">
+            <div class="flex items-center space-x-4 p-3 rounded-lg transition-all duration-200 hover:bg-cyan-500/10 active:scale-[0.98] cursor-pointer">
                 <div class="w-2 h-2 rounded-full {% if log.event_type == 'alert_created' %}bg-green-500{% elif log.event_type == 'login' %}bg-blue-500{% else %}bg-cyan-500{% endif %}"></div>
                 <div class="flex-1">
                     <p class="text-sm text-white">{{ log.message }}</p>
@@ -174,6 +179,28 @@
                 </div>
             </div>
             {% endfor %}
+        </div>
+    </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div id="deleteModal" class="hidden fixed inset-0 z-[9999] flex items-center justify-center">
+    <div class="absolute inset-0 bg-black/50 backdrop-blur-sm" onclick="hideDeleteModal()"></div>
+    <div class="relative glass-panel p-6 rounded-xl border border-red-500/30 max-w-md w-full mx-4 shadow-2xl">
+        <div class="text-center">
+            <div class="mx-auto w-16 h-16 rounded-full bg-red-500/20 flex items-center justify-center mb-4">
+                <i class="fas fa-exclamation-triangle text-red-500 text-2xl"></i>
+            </div>
+            <h3 class="text-xl font-semibold text-white mb-2">Supprimer l'utilisateur</h3>
+            <p class="text-slate-400 mb-6">Êtes-vous sûr de vouloir supprimer cet utilisateur ? Cette action est irréversible.</p>
+            <div class="flex space-x-3">
+                <button onclick="hideDeleteModal()" class="flex-1 px-4 py-2 bg-slate-700 text-white rounded-lg hover:bg-slate-600 transition-colors">
+                    Annuler
+                </button>
+                <button onclick="confirmDelete()" class="flex-1 px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors">
+                    <i class="fas fa-trash mr-2"></i>Supprimer
+                </button>
+            </div>
         </div>
     </div>
 </div>
@@ -185,11 +212,16 @@ function toggleCreateUser() {
     document.getElementById('createUserForm').classList.toggle('hidden');
 }
 
-function toggleMenu(username) {
+function toggleMenu(event, username) {
+    event.stopPropagation();
+    event.preventDefault();
+    
     const menu = document.getElementById('menu-' + username);
+    
     document.querySelectorAll('[id^="menu-"]').forEach(m => {
         if (m !== menu) m.classList.add('hidden');
     });
+    
     menu.classList.toggle('hidden');
 }
 
@@ -198,5 +230,35 @@ document.addEventListener('click', (e) => {
         document.querySelectorAll('[id^="menu-"]').forEach(m => m.classList.add('hidden'));
     }
 });
+
+let currentDeleteUser = null;
+
+function showDeleteModal(username) {
+    currentDeleteUser = username;
+    document.getElementById('deleteModal').classList.remove('hidden');
+}
+
+function hideDeleteModal() {
+    currentDeleteUser = null;
+    document.getElementById('deleteModal').classList.add('hidden');
+}
+
+function confirmDelete() {
+    if (currentDeleteUser) {
+        document.getElementById('deleteForm-' + currentDeleteUser).submit();
+    }
+}
+
+function togglePassword(inputId, button) {
+    const input = document.getElementById(inputId);
+    const icon = button.querySelector('i');
+    if (input.type === 'password') {
+        input.type = 'text';
+        icon.classList.replace('fa-eye', 'fa-eye-slash');
+    } else {
+        input.type = 'password';
+        icon.classList.replace('fa-eye-slash', 'fa-eye');
+    }
+}
 </script>
 {% endblock %}
