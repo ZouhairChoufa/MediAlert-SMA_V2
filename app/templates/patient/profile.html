@@ -1,0 +1,92 @@
+{% extends "base.html" %}
+
+{% block title %}Mon Profil - MediAlert SMA{% endblock %}
+{% block header %}MON PROFIL PATIENT{% endblock %}
+
+{% block content %}
+<div class="max-w-6xl mx-auto space-y-6">
+    <!-- Profile Header -->
+    <div class="glass-panel p-8">
+        <div class="flex items-center justify-between mb-6">
+            <div class="flex items-center space-x-4">
+                <div class="w-20 h-20 rounded-full bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center">
+                    <i class="fas fa-user text-white text-3xl"></i>
+                </div>
+                <div>
+                    <h2 class="text-2xl font-bold text-white">{{ patient.nom_prenom }}</h2>
+                    <p class="text-slate-400">{{ patient.age }} ans • {{ patient.sexe }}</p>
+                </div>
+            </div>
+            <a href="{{ url_for('patient.edit_profile') }}" class="px-4 py-2 bg-cyan-500 hover:bg-cyan-600 rounded-lg transition-colors">
+                <i class="fas fa-edit mr-2"></i>Modifier
+            </a>
+        </div>
+
+        <div class="grid grid-cols-2 gap-6">
+            <div>
+                <label class="text-sm text-slate-400">Email</label>
+                <p class="text-white">{{ patient.email }}</p>
+            </div>
+            <div>
+                <label class="text-sm text-slate-400">Téléphone</label>
+                <p class="text-white">{{ patient.phone or 'Non renseigné' }}</p>
+            </div>
+            <div>
+                <label class="text-sm text-slate-400">Adresse</label>
+                <p class="text-white">{{ patient.address or 'Non renseignée' }}</p>
+            </div>
+            <div>
+                <label class="text-sm text-slate-400">Groupe sanguin</label>
+                <p class="text-white">{{ patient.blood_type or 'Non renseigné' }}</p>
+            </div>
+            <div class="col-span-2">
+                <label class="text-sm text-slate-400">Allergies</label>
+                <p class="text-white">{{ patient.allergies|join(', ') if patient.allergies else 'Aucune' }}</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Alerts History -->
+    <div class="glass-panel p-8">
+        <div class="flex items-center justify-between mb-6">
+            <h3 class="text-xl font-bold text-white">
+                <i class="fas fa-history mr-2 text-cyan-400"></i>Historique des alertes
+            </h3>
+            <span class="text-sm text-slate-400">{{ patient.alerts|length }} alerte(s)</span>
+        </div>
+
+        {% if patient.alerts %}
+        <div class="space-y-4">
+            {% for alert in patient.alerts|reverse %}
+            <a href="{{ url_for('patient.alert_detail', alert_id=alert.alert_id) }}" 
+               class="block p-4 bg-slate-800/50 hover:bg-slate-800 rounded-lg border border-cyan-500/20 hover:border-cyan-500/50 transition-all">
+                <div class="flex items-center justify-between">
+                    <div class="flex-1">
+                        <div class="flex items-center space-x-3 mb-2">
+                            <span class="px-3 py-1 rounded-full text-xs font-semibold
+                                {% if alert.urgency_level == 'CRITIQUE' %}bg-red-500/20 text-red-400
+                                {% elif alert.urgency_level == 'URGENT' %}bg-orange-500/20 text-orange-400
+                                {% else %}bg-yellow-500/20 text-yellow-400{% endif %}">
+                                {{ alert.urgency_level or 'MOYEN' }}
+                            </span>
+                            <span class="text-sm text-slate-400">{{ alert.date }}</span>
+                        </div>
+                        <p class="text-white font-medium">{{ alert.symptomes }}</p>
+                        <p class="text-sm text-slate-400 mt-1">
+                            <i class="fas fa-hospital mr-1"></i>{{ alert.hospital_name }}
+                        </p>
+                    </div>
+                    <i class="fas fa-chevron-right text-cyan-400"></i>
+                </div>
+            </a>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="text-center py-12">
+            <i class="fas fa-inbox text-slate-600 text-5xl mb-4"></i>
+            <p class="text-slate-400">Aucune alerte enregistrée</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

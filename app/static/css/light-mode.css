@@ -99,3 +99,19 @@ body.light-mode #searchResults > div {
 body.light-mode #searchResults .font-semibold {
     color: #0f172a !important;
 }
+
+/* Text Colors Light Mode */
+body.light-mode .text-white {
+    color: #0f172a !important;
+}
+
+body.light-mode p,
+body.light-mode span,
+body.light-mode label,
+body.light-mode div {
+    color: #0f172a !important;
+}
+
+body.light-mode .text-slate-600 {
+    color: #475569 !important;
+}

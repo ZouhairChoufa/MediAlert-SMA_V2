@@ -8,6 +8,7 @@ from app.services.firebase_service import FirebaseService
 from app.crew.crew import SystemeUrgencesMedicalesCrew
 from app.services.geolocation import GeolocationService
 from app.services.smart_dispatch import SmartDispatchEngine
+from app.decorators import login_required
 
 api_bp = Blueprint('api', __name__)
 
@@ -35,6 +36,7 @@ def detect_ip_location():
         return jsonify({'error': str(e)}), 500
 
 @api_bp.route('/alert', methods=['POST'])
+@login_required
 def create_alert():
     """Create new emergency alert with smart dispatch"""
     try:
@@ -128,6 +130,7 @@ def create_alert():
         return jsonify({'error': str(e)}), 500
 
 @api_bp.route('/alert/<alert_id>/data', methods=['GET'])
+@login_required
 def get_alert_data(alert_id):
     """Get alert data for tracking page"""
     if alert_id in alert_storage:

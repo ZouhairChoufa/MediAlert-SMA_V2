@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+
+{% block title %}Créer mon profil - MediAlert SMA{% endblock %}
+{% block header %}CRÉER MON PROFIL{% endblock %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto">
+    <div class="glass-panel p-8">
+        <h2 class="text-2xl font-bold text-white mb-6">Complétez votre profil patient</h2>
+        
+        <form method="POST" action="{{ url_for('patient.create_profile') }}" class="space-y-6">
+            <div class="grid grid-cols-2 gap-4">
+                <div class="col-span-2">
+                    <label class="block text-sm font-medium text-slate-300 mb-2">Nom complet *</label>
+                    <input type="text" name="nom_prenom" required
+                        class="w-full bg-slate-900/50 border border-cyan-500/20 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-cyan-500/50">
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-slate-300 mb-2">Âge *</label>
+                    <input type="number" name="age" required min="0" max="150"
+                        class="w-full bg-slate-900/50 border border-cyan-500/20 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-cyan-500/50">
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-slate-300 mb-2">Sexe *</label>
+                    <select name="sexe" required
+                        class="w-full bg-slate-900/50 border border-cyan-500/20 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-cyan-500/50">
+                        <option value="M">Masculin</option>
+                        <option value="F">Féminin</option>
+                    </select>
+                </div>
+
+                <div class="col-span-2">
+                    <label class="block text-sm font-medium text-slate-300 mb-2">Email *</label>
+                    <input type="email" name="email" required
+                        class="w-full bg-slate-900/50 border border-cyan-500/20 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-cyan-500/50">
+                </div>
+
+                <div class="col-span-2">
+                    <label class="block text-sm font-medium text-slate-300 mb-2">Téléphone</label>
+                    <input type="tel" name="phone"
+                        class="w-full bg-slate-900/50 border border-cyan-500/20 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-cyan-500/50">
+                </div>
+
+                <div class="col-span-2">
+                    <label class="block text-sm font-medium text-slate-300 mb-2">Adresse</label>
+                    <input type="text" name="address"
+                        class="w-full bg-slate-900/50 border border-cyan-500/20 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-cyan-500/50">
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-slate-300 mb-2">Groupe sanguin</label>
+                    <select name="blood_type"
+                        class="w-full bg-slate-900/50 border border-cyan-500/20 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-cyan-500/50">
+                        <option value="">Sélectionner</option>
+                        <option value="A+">A+</option>
+                        <option value="A-">A-</option>
+                        <option value="B+">B+</option>
+                        <option value="B-">B-</option>
+                        <option value="AB+">AB+</option>
+                        <option value="AB-">AB-</option>
+                        <option value="O+">O+</option>
+                        <option value="O-">O-</option>
+                    </select>
+                </div>
+
+                <div class="col-span-2">
+                    <label class="block text-sm font-medium text-slate-300 mb-2">Allergies (séparées par des virgules)</label>
+                    <input type="text" name="allergies" placeholder="Ex: Pénicilline, Arachides"
+                        class="w-full bg-slate-900/50 border border-cyan-500/20 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-cyan-500/50">
+                </div>
+            </div>
+
+            <button type="submit"
+                class="w-full bg-gradient-to-r from-cyan-500 to-blue-600 text-white font-semibold py-3 px-4 rounded-lg hover:shadow-lg hover:shadow-cyan-500/50 transition-all">
+                <i class="fas fa-save mr-2"></i>Créer mon profil
+            </button>
+        </form>
+    </div>
+</div>
+{% endblock %}

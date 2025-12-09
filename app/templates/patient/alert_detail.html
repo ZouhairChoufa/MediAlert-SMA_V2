@@ -1,0 +1,164 @@
+{% extends "base.html" %}
+
+{% block title %}Détails Alerte - MediAlert SMA{% endblock %}
+{% block header %}DÉTAILS DE L'ALERTE{% endblock %}
+
+{% block content %}
+<div class="max-w-6xl mx-auto space-y-6">
+    <!-- Back Button -->
+    <a href="{{ url_for('patient.profile') }}" class="inline-flex items-center text-cyan-400 hover:text-cyan-300">
+        <i class="fas fa-arrow-left mr-2"></i>Retour au profil
+    </a>
+
+    <!-- Alert Overview -->
+    <div class="glass-panel p-8">
+        <div class="flex items-center justify-between mb-6">
+            <div>
+                <h2 class="text-2xl font-bold text-white mb-2">Alerte #{{ alert.alert_id }}</h2>
+                <p class="text-slate-400">{{ alert.date }}</p>
+            </div>
+            <span class="px-4 py-2 rounded-full text-sm font-semibold
+                {% if alert.urgency_level == 'CRITIQUE' %}bg-red-500/20 text-red-400
+                {% elif alert.urgency_level == 'URGENT' %}bg-orange-500/20 text-orange-400
+                {% else %}bg-yellow-500/20 text-yellow-400{% endif %}">
+                {{ alert.urgency_level or 'MOYEN' }}
+            </span>
+        </div>
+
+        <div class="grid grid-cols-2 gap-6">
+            <div>
+                <label class="text-sm text-slate-400">Symptômes</label>
+                <p class="text-white">{{ alert.symptomes }}</p>
+            </div>
+            <div>
+                <label class="text-sm text-slate-400">Localisation</label>
+                <p class="text-white">{{ alert.localisation }}</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Hospital Information -->
+    <div class="glass-panel p-8">
+        <h3 class="text-xl font-bold text-white mb-6">
+            <i class="fas fa-hospital text-cyan-400 mr-2"></i>Hôpital
+        </h3>
+        <div class="grid grid-cols-2 gap-6">
+            <div>
+                <label class="text-sm text-slate-400">Nom de l'hôpital</label>
+                <p class="text-white font-medium">{{ alert.hospital_name }}</p>
+            </div>
+            <div>
+                <label class="text-sm text-slate-400">Service</label>
+                <p class="text-white">{{ alert.hospital_service or 'Urgences' }}</p>
+            </div>
+            <div>
+                <label class="text-sm text-slate-400">Distance</label>
+                <p class="text-white">{{ alert.distance_km }} km</p>
+            </div>
+            <div>
+                <label class="text-sm text-slate-400">Temps d'arrivée</label>
+                <p class="text-white">{{ alert.eta_minutes }} minutes</p>
+            </div>
+            <div>
+                <label class="text-sm text-slate-400">Numéro de lit</label>
+                <p class="text-white">{{ alert.bed_number or 'Non assigné' }}</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Medical Team -->
+    <div class="glass-panel p-8">
+        <h3 class="text-xl font-bold text-white mb-6">
+            <i class="fas fa-user-md text-cyan-400 mr-2"></i>Équipe médicale
+        </h3>
+        
+        {% if alert.doctors %}
+        <div class="grid grid-cols-2 gap-4">
+            {% for doctor in alert.doctors %}
+            <div class="p-4 bg-slate-800/50 rounded-lg border border-cyan-500/20">
+                <div class="flex items-center space-x-3">
+                    <div class="w-12 h-12 rounded-full bg-cyan-500/20 flex items-center justify-center">
+                        <i class="fas fa-user-md text-cyan-400"></i>
+                    </div>
+                    <div>
+                        <p class="text-white font-medium">{{ doctor.name }}</p>
+                        <p class="text-sm text-slate-400">{{ doctor.specialty }}</p>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <p class="text-slate-400">Aucun médecin assigné</p>
+        {% endif %}
+    </div>
+
+    <!-- Treatment Protocol -->
+    <div class="glass-panel p-8">
+        <h3 class="text-xl font-bold text-white mb-6">
+            <i class="fas fa-notes-medical text-cyan-400 mr-2"></i>Protocole de traitement
+        </h3>
+        
+        {% if alert.treatment_protocol %}
+        <div class="space-y-4">
+            <div>
+                <label class="text-sm text-slate-400">Diagnostic</label>
+                <p class="text-white">{{ alert.treatment_protocol.diagnostic }}</p>
+            </div>
+            
+            {% if alert.treatment_protocol.medications %}
+            <div>
+                <label class="text-sm text-slate-400 mb-2 block">Médicaments administrés</label>
+                <div class="flex flex-wrap gap-2">
+                    {% for med in alert.treatment_protocol.medications %}
+                    <span class="px-3 py-1 bg-cyan-500/20 text-cyan-400 rounded-full text-sm">{{ med }}</span>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+            
+            {% if alert.treatment_protocol.procedures %}
+            <div>
+                <label class="text-sm text-slate-400 mb-2 block">Procédures effectuées</label>
+                <ul class="space-y-2">
+                    {% for proc in alert.treatment_protocol.procedures %}
+                    <li class="text-white flex items-start">
+                        <i class="fas fa-check text-green-400 mr-2 mt-1"></i>
+                        {{ proc }}
+                    </li>
+                    {% endfor %}
+                </ul>
+            </div>
+            {% endif %}
+        </div>
+        {% else %}
+        <p class="text-slate-400">Aucun protocole enregistré</p>
+        {% endif %}
+    </div>
+
+    <!-- Timeline -->
+    <div class="glass-panel p-8">
+        <h3 class="text-xl font-bold text-white mb-6">
+            <i class="fas fa-clock text-cyan-400 mr-2"></i>Chronologie
+        </h3>
+        
+        {% if alert.timeline %}
+        <div class="space-y-4">
+            {% for event in alert.timeline %}
+            <div class="flex items-start space-x-4">
+                <div class="w-10 h-10 rounded-full bg-cyan-500/20 flex items-center justify-center flex-shrink-0">
+                    <i class="fas fa-circle text-cyan-400 text-xs"></i>
+                </div>
+                <div class="flex-1">
+                    <p class="text-white font-medium">{{ event.title }}</p>
+                    <p class="text-sm text-slate-400">{{ event.time }}</p>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <p class="text-slate-400">Aucune chronologie disponible</p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

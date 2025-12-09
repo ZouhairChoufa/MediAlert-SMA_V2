@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+
+{% block title %}Modifier mon profil - MediAlert SMA{% endblock %}
+{% block header %}MODIFIER MON PROFIL{% endblock %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto">
+    <a href="{{ url_for('patient.profile') }}" class="inline-flex items-center text-cyan-400 hover:text-cyan-300 mb-6">
+        <i class="fas fa-arrow-left mr-2"></i>Retour au profil
+    </a>
+
+    <div class="glass-panel p-8">
+        <h2 class="text-2xl font-bold text-white mb-6">Modifier mes informations</h2>
+        
+        <form method="POST" class="space-y-6">
+            <div class="grid grid-cols-2 gap-4">
+                <div class="col-span-2">
+                    <label class="block text-sm font-medium text-slate-300 mb-2">Téléphone</label>
+                    <input type="tel" name="phone" value="{{ patient.phone }}"
+                        class="w-full bg-slate-900/50 border border-cyan-500/20 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-cyan-500/50">
+                </div>
+
+                <div class="col-span-2">
+                    <label class="block text-sm font-medium text-slate-300 mb-2">Adresse</label>
+                    <input type="text" name="address" value="{{ patient.address }}"
+                        class="w-full bg-slate-900/50 border border-cyan-500/20 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-cyan-500/50">
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-slate-300 mb-2">Groupe sanguin</label>
+                    <select name="blood_type"
+                        class="w-full bg-slate-900/50 border border-cyan-500/20 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-cyan-500/50">
+                        <option value="">Sélectionner</option>
+                        <option value="A+" {% if patient.blood_type == 'A+' %}selected{% endif %}>A+</option>
+                        <option value="A-" {% if patient.blood_type == 'A-' %}selected{% endif %}>A-</option>
+                        <option value="B+" {% if patient.blood_type == 'B+' %}selected{% endif %}>B+</option>
+                        <option value="B-" {% if patient.blood_type == 'B-' %}selected{% endif %}>B-</option>
+                        <option value="AB+" {% if patient.blood_type == 'AB+' %}selected{% endif %}>AB+</option>
+                        <option value="AB-" {% if patient.blood_type == 'AB-' %}selected{% endif %}>AB-</option>
+                        <option value="O+" {% if patient.blood_type == 'O+' %}selected{% endif %}>O+</option>
+                        <option value="O-" {% if patient.blood_type == 'O-' %}selected{% endif %}>O-</option>
+                    </select>
+                </div>
+
+                <div class="col-span-2">
+                    <label class="block text-sm font-medium text-slate-300 mb-2">Allergies (séparées par des virgules)</label>
+                    <input type="text" name="allergies" value="{{ patient.allergies|join(', ') }}" placeholder="Ex: Pénicilline, Arachides"
+                        class="w-full bg-slate-900/50 border border-cyan-500/20 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-cyan-500/50">
+                </div>
+            </div>
+
+            <button type="submit"
+                class="w-full bg-gradient-to-r from-cyan-500 to-blue-600 text-white font-semibold py-3 px-4 rounded-lg hover:shadow-lg hover:shadow-cyan-500/50 transition-all">
+                <i class="fas fa-save mr-2"></i>Enregistrer les modifications
+            </button>
+        </form>
+    </div>
+</div>
+{% endblock %}

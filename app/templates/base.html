@@ -48,8 +48,8 @@
                 <a href="/alert" class="nav-item {% if request.path == '/alert' %}active{% endif %}" title="Nouvelle Alerte">
                     <i class="fas fa-plus-circle"></i>
                 </a>
-                <a href="/patient_info" class="nav-item" title="Patients">
-                    <i class="fas fa-user-doctor"></i>
+                <a href="/patient/profile" class="nav-item {% if '/patient' in request.path %}active{% endif %}" title="Mon Profil">
+                    <i class="fas fa-user"></i>
                 </a>
                 <a href="/admin" class="nav-item" title="Admin">
                     <i class="fas fa-cog"></i>
@@ -88,6 +88,20 @@
                         <span class="text-xs text-slate-500">SYSTEM</span>
                         <span class="text-green-400 text-xs font-semibold">OPERATIONAL</span>
                     </div>
+                    {% if session.get('user') %}
+                    <div class="flex items-center space-x-3">
+                        <span class="text-sm text-slate-400">
+                            <i class="fas fa-user-circle mr-1"></i>{{ session.get('user') }}
+                        </span>
+                        <a href="{{ url_for('auth.logout') }}" class="text-xs text-red-400 hover:text-red-300">
+                            <i class="fas fa-sign-out-alt mr-1"></i>Déconnexion
+                        </a>
+                    </div>
+                    {% else %}
+                    <a href="{{ url_for('auth.login') }}" class="text-sm text-cyan-400 hover:text-cyan-300">
+                        <i class="fas fa-sign-in-alt mr-1"></i>Connexion
+                    </a>
+                    {% endif %}
                 </div>
             </header>
 

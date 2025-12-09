@@ -1,0 +1,17 @@
+{
+  "ilyass": {
+    "username": "ilyass",
+    "nom_prenom": "Ilyass Bouchtaoui",
+    "age": 45,
+    "sexe": "M",
+    "email": "ilyass.blodimir@gmail.com",
+    "phone": "0708060304",
+    "address": "Av. des Facult\u00e9s, El Jadida",
+    "blood_type": "B+",
+    "allergies": [
+      "none"
+    ],
+    "medical_history": [],
+    "alerts": []
+  }
+}
