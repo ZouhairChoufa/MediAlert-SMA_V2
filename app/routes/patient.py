@@ -2,6 +2,7 @@ from flask import Blueprint, render_template, request, redirect, url_for, flash,
 from app.decorators import login_required
 from app.models.patient import PatientStore
 from app.services.firebase_service import FirebaseService
+from firebase_admin import firestore
 
 patient_bp = Blueprint('patient', __name__)
 patient_store = PatientStore()
@@ -75,7 +76,7 @@ def alerts_history():
         return redirect(url_for('patient.profile'))
     
     # Fetch user's alerts from Firestore
-    alerts = [doc.to_dict() | {'alert_id': doc.id} for doc in alerts_collection.where('username', '==', username).stream()]
+    alerts = [doc.to_dict() | {'alert_id': doc.id} for doc in alerts_collection.where(filter=firestore.FieldFilter('username', '==', username)).stream()]
     
     return render_template('patient/alerts_history.html', patient=patient, alerts=alerts)
 

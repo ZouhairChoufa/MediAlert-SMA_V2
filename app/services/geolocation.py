@@ -1,5 +1,5 @@
 import requests
-from app.config import Config
+from app.config_settings import Config
 
 class GeolocationService:
     def __init__(self):

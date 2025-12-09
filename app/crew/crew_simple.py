@@ -1,7 +1,7 @@
 import yaml
 import os
 from langchain_groq import ChatGroq
-from app.config import Config
+from app.config_settings import Config
 from app.services.hospital_service import HospitalService
 from app.services.ors_service import ORSService
 import json

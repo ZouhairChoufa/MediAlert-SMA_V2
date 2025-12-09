@@ -1,6 +1,6 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash
 from app.services.location_service import LocationService
-from app.routes.api import alert_storage
+from app.services.firebase_service import FirebaseService
 from app.decorators import login_required
 
 web_bp = Blueprint('web', __name__)
@@ -27,9 +27,13 @@ def alert_form():
 @login_required
 def tracking(alert_id):
     """Tracking page for emergency alert"""
-    if alert_id in alert_storage:
-        alert_data = alert_storage[alert_id]
+    firebase = FirebaseService()
+    alerts_collection = firebase.get_collection('alerts')
+    doc = alerts_collection.document(alert_id).get()
+    
+    if doc.exists:
+        alert_data = doc.to_dict()
         return render_template('tracking.html', 
                              alert_id=alert_id,
-                             patient=alert_data['patient'])
+                             patient=alert_data.get('patient', {}))
     return redirect(url_for('web.dashboard'))

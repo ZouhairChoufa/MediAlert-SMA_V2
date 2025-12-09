@@ -1,6 +1,6 @@
 import openrouteservice as ors
 import polyline
-from app.config import Config
+from app.config_settings import Config
 
 class ORSService:
     def __init__(self):

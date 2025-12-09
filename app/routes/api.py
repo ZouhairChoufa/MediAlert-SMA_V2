@@ -3,9 +3,12 @@ import threading
 import uuid
 import sys
 import json
+from datetime import datetime
+from firebase_admin import firestore
 from app.services.firebase_service import FirebaseService
 from app.services.system_logs_service import SystemLogsService
-from app.crew.crew import SystemeUrgencesMedicalesCrew
+from app.services.emergency_orchestrator import EmergencyOrchestrator
+import asyncio
 from app.services.geolocation import GeolocationService
 from app.services.smart_dispatch import SmartDispatchEngine
 from app.decorators import login_required
@@ -18,6 +21,8 @@ alerts_collection = firebase_service.get_collection('alerts')
 logs_service = SystemLogsService()
 geolocation_service = GeolocationService()
 smart_dispatch = SmartDispatchEngine()
+
+
 
 @api_bp.route('/detect-ip-location', methods=['POST'])
 def detect_ip_location():
@@ -50,81 +55,63 @@ def create_alert():
         
         # Merge location sources
         gps = data.get('gps_coords')
-        manual = {'address': data.get('localisation'), 'lat': data.get('lat'), 'lng': data.get('lng')}
-        # Note: request.remote_addr might need proxy handling in production
+        lat = float(data.get('lat')) if data.get('lat') else None
+        lng = float(data.get('lng')) if data.get('lng') else None
+        manual = {'address': data.get('localisation'), 'lat': lat, 'lng': lng}
         ip = geolocation_service.get_ip_location(request.remote_addr)
         
         location = geolocation_service.merge_all_location_sources(gps, manual, ip)
         
+        # Validate location has coordinates
+        if not location.get('lat') or not location.get('lng'):
+            return jsonify({'error': 'Unable to determine location coordinates'}), 400
+        
         # Smart dispatch (initial logic before CrewAI)
-        emergency_level = data.get('emergency_level', 2)
+        emergency_level = int(data.get('emergency_level', 2))
         dispatch_result = smart_dispatch.dispatch_ambulance(
-            location['lat'], location['lng'], emergency_level
+            float(location['lat']), float(location['lng']), emergency_level
         )
         
         # Generate alert ID
         alert_id = str(uuid.uuid4())[:8]
         
-        # Store alert data in Firestore
+        # Store alert data in Firestore (flatten all nested objects)
         alert_data = {
-            'patient': data,
-            'location': location,
-            'dispatch': dispatch_result,
+            'patient': json.loads(json.dumps(data, default=str)),
+            'location': json.loads(json.dumps(location, default=str)),
+            'dispatch_info': json.dumps(dispatch_result, default=str),
             'status': 'processing',
             'logs': [],
             'username': session.get('user'),
-            'created_at': firestore.SERVER_TIMESTAMP
+            'created_at': datetime.utcnow().isoformat()
         }
         alerts_collection.document(alert_id).set(alert_data)
         
         # Log alert creation
         logs_service.log_event('alert_created', f'New alert created: {alert_id}', session.get('user'), {'alert_id': alert_id, 'patient': data.get('nom_prenom')})
         
-        # Trigger crew processing in background
-        def process_crew():
+        # Trigger async workflow in background
+        username = session.get('user')
+        def run_async_workflow():
             try:
-                print(f"\n[AGENT] Starting crew processing for alert {alert_id}", flush=True)
-                sys.stdout.flush()
-                
-                doc_ref = alerts_collection.document(alert_id)
-                doc_ref.update({'logs': firestore.ArrayUnion(['[SYSTEM] Initialisation crew...'])})
-                
-                # Create inputs for the Crew
-                crew_inputs = {
-                    'nom_prenom': data.get('nom_prenom'),
-                    'age': data.get('age'),
-                    'sexe': data.get('sexe'),
-                    'symptomes': data.get('symptomes'),
-                    'localisation': data.get('localisation') or location.get('address'),
-                    'nv_urgence': data.get('emergency_level', 'Non spécifié')
-                }
-
-                # Initialize and run the Crew
-                crew = SumiSystemeUrgenceMedicaleIntelligentCrew().crew()
-                result = crew.kickoff(inputs=crew_inputs)
-                
-                print("\n" + "="*50)
-                print(f"✅ FINAL CREW OUTPUT for Alert {alert_id}:")
-                print("="*50)
-                print(result)
-                print("="*50 + "\n", flush=True)
-                
-                doc_ref.update({
-                    'result': str(result),
-                    'status': 'completed'
-                })
-                logs_service.log_event('alert_completed', f'Alert processing completed: {alert_id}', session.get('user'), {'alert_id': alert_id})
-                print(f"[AGENT] Crew processing completed for alert {alert_id}", flush=True)
-                
+                print(f"\n[ORCHESTRATOR] Starting workflow for alert {alert_id}", flush=True)
+                orchestrator = EmergencyOrchestrator()
+                asyncio.run(orchestrator.run_workflow(
+                    alert_id,
+                    float(location['lat']),
+                    float(location['lng']),
+                    emergency_level
+                ))
+                print(f"[ORCHESTRATOR] Workflow completed for alert {alert_id}", flush=True)
+                logs_service.log_event('alert_completed', f'Alert workflow completed: {alert_id}', username, {'alert_id': alert_id})
             except Exception as e:
                 alerts_collection.document(alert_id).update({
-                    'status': 'error',
+                    'status': 'ERROR',
                     'error': str(e)
                 })
-                print(f"[ERROR] Crew processing failed: {e}", flush=True)
-                sys.stdout.flush()
+                print(f"[ERROR] Workflow failed: {e}", flush=True)
         
-        thread = threading.Thread(target=process_crew)
+        thread = threading.Thread(target=run_async_workflow)
         thread.daemon = True
         thread.start()
         
@@ -132,7 +119,7 @@ def create_alert():
             'success': True,
             'alert_id': alert_id,
             'message': 'Alerte créée et traitement en cours',
-            'dispatch': dispatch_result
+            'dispatch': json.loads(json.dumps(dispatch_result, default=str))
         })
         
     except Exception as e:
@@ -142,10 +129,24 @@ def create_alert():
 @api_bp.route('/alert/<alert_id>/data', methods=['GET'])
 @login_required
 def get_alert_data(alert_id):
-    """Get alert data for tracking page"""
+    """Get alert data for tracking page with real-time updates"""
     doc = alerts_collection.document(alert_id).get()
     if doc.exists:
-        return jsonify(doc.to_dict())
+        data = doc.to_dict()
+        # Return structured data for frontend
+        return jsonify({
+            'status': data.get('status', 'processing'),
+            'logs': data.get('logs', []),
+            'route_phase': data.get('route_phase'),
+            'route_geometry': data.get('route_geometry'),
+            'eta_minutes': data.get('eta_minutes'),
+            'selected_hospital': data.get('selected_hospital'),
+            'ambulance': data.get('ambulance'),
+            'patient': data.get('patient'),
+            'location': data.get('location'),
+            'completed_at': data.get('completed_at'),
+            'total_time_minutes': data.get('total_time_minutes')
+        })
     return jsonify({'error': 'Alert not found'}), 404
 
 @api_bp.route('/status/<alert_id>')

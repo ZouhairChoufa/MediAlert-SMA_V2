@@ -43,8 +43,21 @@ body.light-mode .text-cyan-400 {
 }
 
 body.light-mode .bg-slate-800\/50,
-body.light-mode .bg-slate-800 {
-    background: rgba(241, 245, 249, 0.9) !important;
+body.light-mode .bg-slate-800,
+body.light-mode .bg-slate-800\/95 {
+    background: rgba(255, 255, 255, 0.95) !important;
+}
+
+body.light-mode .bg-slate-900\/50 {
+    background: rgba(248, 250, 252, 0.95) !important;
+}
+
+body.light-mode .bg-slate-700 {
+    background: rgba(226, 232, 240, 0.9) !important;
+}
+
+body.light-mode .hover\:bg-slate-700\/50:hover {
+    background: rgba(226, 232, 240, 0.5) !important;
 }
 
 body.light-mode input,
@@ -114,4 +127,13 @@ body.light-mode div {
 
 body.light-mode .text-slate-600 {
     color: #475569 !important;
+}
+
+body.light-mode .text-green-400,
+body.light-mode .text-emerald-500 {
+    color: #10b981 !important;
+}
+
+body.light-mode .text-cyan-400 {
+    color: #0891b2 !important;
 }

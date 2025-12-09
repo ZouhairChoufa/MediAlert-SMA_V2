@@ -283,3 +283,9 @@ button:active {
     from { opacity: 0; }
     to { opacity: 1; }
 }
+
+/* Map Container - Theme Independent */
+#map, .leaflet-container {
+    filter: none !important;
+    background: #fff !important;
+}

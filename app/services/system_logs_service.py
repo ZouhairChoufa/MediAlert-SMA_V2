@@ -21,9 +21,9 @@ class SystemLogsService:
         return [doc.to_dict() | {'id': doc.id} for doc in docs]
     
     def get_logs_by_user(self, username, limit=50):
-        docs = self.collection.where('user', '==', username).order_by('timestamp', direction=firestore.Query.DESCENDING).limit(limit).stream()
+        docs = self.collection.where(filter=firestore.FieldFilter('user', '==', username)).order_by('timestamp', direction=firestore.Query.DESCENDING).limit(limit).stream()
         return [doc.to_dict() | {'id': doc.id} for doc in docs]
     
     def get_logs_by_type(self, event_type, limit=50):
-        docs = self.collection.where('event_type', '==', event_type).order_by('timestamp', direction=firestore.Query.DESCENDING).limit(limit).stream()
+        docs = self.collection.where(filter=firestore.FieldFilter('event_type', '==', event_type)).order_by('timestamp', direction=firestore.Query.DESCENDING).limit(limit).stream()
         return [doc.to_dict() | {'id': doc.id} for doc in docs]
