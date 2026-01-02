@@ -1,11 +1,20 @@
 {% extends "base.html" %}
 
 {% block title %}Suivi en Direct - MediAlert SMA{% endblock %}
+
+{% block styles %}
+<style>
+    .smooth-marker-transition {
+        transition: transform 1.0s linear, opacity 1.0s linear;
+        will-change: transform;
+    }
+</style>
+{% endblock %}
+
 {% block header %}SUIVI EN DIRECT - ALERTE {{ alert_id }}{% endblock %}
 
 {% block content %}
 <div class="grid grid-cols-12 gap-6 h-full">
-    <!-- Left Panel - Patient Info -->
     <div class="col-span-3 space-y-6">
         <div class="glass-panel p-6">
             <h3 class="text-sm font-semibold text-cyan-400 uppercase tracking-wider mb-4">
@@ -35,7 +44,6 @@
             </div>
         </div>
 
-        <!-- Agent Console -->
         <div class="glass-panel p-6">
             <h3 class="text-sm font-semibold text-cyan-400 uppercase tracking-wider mb-4">
                 <i class="fas fa-terminal mr-2"></i>Console Agents
@@ -46,27 +54,22 @@
         </div>
     </div>
 
-    <!-- Center - Map -->
     <div class="col-span-6">
         <div class="glass-panel h-full relative overflow-hidden">
-            <!-- Status Overlay -->
-            <div class="absolute top-4 left-4 z-10 glass-panel-dark px-4 py-3">
+            <div class="absolute top-4 left-4 z-[500] glass-panel-dark px-4 py-3 rounded shadow-lg">
                 <div class="text-xs text-slate-500">STATUT</div>
                 <div id="alert-status" class="mono text-cyan-400 text-lg font-semibold">EN COURS</div>
             </div>
 
-            <!-- ETA Display -->
-            <div class="absolute top-4 right-4 z-10 glass-panel-dark px-6 py-4">
-                <div class="text-xs text-slate-500 mb-1">ETA</div>
+            <div class="absolute top-4 right-4 z-[500] glass-panel-dark px-6 py-4 rounded shadow-lg">
+                <div class="text-xs text-slate-500 mb-1">ETA Global</div>
                 <div class="mono text-red-400 text-3xl font-bold" id="eta-display">--:--</div>
             </div>
 
-            <!-- Map -->
-            <div id="map" class="w-full h-full"></div>
+            <div id="map" class="w-full h-full z-0"></div>
         </div>
     </div>
 
-    <!-- Right Panel - Hospital & Route Info -->
     <div class="col-span-3 space-y-6">
         <div class="glass-panel p-6">
             <h3 class="text-sm font-semibold text-cyan-400 uppercase tracking-wider mb-4">
@@ -82,38 +85,43 @@
 
         <div class="glass-panel p-6">
             <h3 class="text-sm font-semibold text-cyan-400 uppercase tracking-wider mb-4">
-                <i class="fas fa-route mr-2"></i>Trajet
+                <i class="fas fa-route mr-2"></i>Logistique Trajet
             </h3>
-            <div id="routeInfo" class="space-y-3">
-                <div class="flex justify-between">
-                    <span class="text-xs text-slate-500">Distance</span>
-                    <span class="mono text-sm" id="distance">-- km</span>
+            <div id="routeInfo" class="space-y-4">
+                <div class="flex flex-col border-l-2 border-red-500 pl-3 py-1">
+                    <div class="flex justify-between items-center mb-1">
+                        <span class="text-xs text-slate-400">🚑 <span id="amb-name-display">Ambulance</span> ➝ Patient</span>
+                    </div>
+                    <div class="flex justify-between items-end">
+                        <span class="mono text-lg font-bold text-white" id="dist_amb_pat">-- km</span>
+                        <span class="text-xs text-red-400 font-mono">Phase 1</span>
+                    </div>
                 </div>
-                <div class="flex justify-between">
-                    <span class="text-xs text-slate-500">Durée</span>
-                    <span class="mono text-sm" id="duration">-- min</span>
-                </div>
-                <div class="flex justify-between">
-                    <span class="text-xs text-slate-500">Ambulance</span>
-                    <span class="mono text-cyan-400 text-sm" id="ambulanceId">AMB-001</span>
+
+                <div class="flex flex-col border-l-2 border-blue-500 pl-3 py-1">
+                    <div class="flex justify-between items-center mb-1">
+                        <span class="text-xs text-slate-400">👤 Patient ➝ 🏥 Hôpital</span>
+                    </div>
+                    <div class="flex justify-between items-end">
+                        <span class="mono text-lg font-bold text-white" id="dist_pat_hosp">-- km</span>
+                        <span class="text-xs text-blue-400 font-mono">Phase 2</span>
+                    </div>
                 </div>
             </div>
         </div>
 
         <div class="glass-panel p-6">
             <h3 class="text-sm font-semibold text-cyan-400 uppercase tracking-wider mb-4">
-                <i class="fas fa-heartbeat mr-2"></i>Triage
+                <i class="fas fa-heartbeat mr-2"></i>Triage Médical
             </h3>
-            <div id="triageInfo" class="space-y-3">
+            <div class="flex items-center justify-between">
                 <div>
-                    <div class="text-xs text-slate-500 mb-2">Gravité</div>
-                    <div class="h-2 bg-slate-800 rounded-full overflow-hidden">
-                        <div id="severityBar" class="h-full bg-gradient-to-r from-green-500 via-yellow-500 to-red-500" style="width: 0%"></div>
-                    </div>
+                    <span class="block text-xs text-slate-500">Gravité</span>
+                    <span class="text-xl font-bold text-white" id="severity-display">--</span>
                 </div>
-                <div>
-                    <div class="text-xs text-slate-500 mb-1">Type Vecteur</div>
-                    <div id="vectorType" class="mono text-sm">--</div>
+                <div class="text-right">
+                    <span class="block text-xs text-slate-500">Vecteur</span>
+                    <span class="text-sm font-bold text-cyan-300" id="vecteur-display">--</span>
                 </div>
             </div>
         </div>
@@ -124,97 +132,23 @@
 {% block scripts %}
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-<script src="{{ url_for('static', filename='js/simple_map.js') }}"></script>
-<script src="{{ url_for('static', filename='js/emergency_workflow.js') }}"></script>
+<script src="{{ url_for('static', filename='js/simple_map.js') }}?v={{ range(1, 10000) | random }}"></script>
+<script src="{{ url_for('static', filename='js/emergency_workflow.js') }}?v={{ range(1, 10000) | random }}"></script>
 <script>
 const alertId = "{{ alert_id }}";
-let workflowManager;
 let persistentMap;
-
-// Initialize workflow manager with custom UI updates
 document.addEventListener('DOMContentLoaded', () => {
-    // Get patient location from backend data
     fetch(`/api/alert/${alertId}/data`)
         .then(res => res.json())
         .then(data => {
-            const location = data.location ? JSON.parse(data.location) : null;
-            const patient = data.patient ? JSON.parse(data.patient) : null;
-            
-            const lat = location?.lat || 33.5731;
-            const lng = location?.lng || -7.5898;
-            const name = patient?.nom_prenom || 'Patient';
-            
-            // Initialize simple static map
+            let location = data.location;
+            if (typeof location === 'string') { try { location = JSON.parse(location); } catch (e) { location = { lat: 33.23, lng: -8.50 }; } }
+            const lat = location?.lat || 33.23;
+            const lng = location?.lng || -8.50;
+            const name = data.patient?.nom_prenom || 'Patient';
             persistentMap = new SimpleMap('map', lat, lng, name);
-            
-            if (persistentMap.map) {
-                workflowManager = new EmergencyWorkflowManager(alertId, persistentMap.map);
-        
-        // Custom callback for console logs
-        workflowManager.onStatusChange((data) => {
-            // Update console
-            if (data.logs) {
-                const logContainer = document.getElementById('activity-log');
-                logContainer.innerHTML = data.logs.map(log => 
-                    `<div class="log-line text-cyan-400">${log}</div>`
-                ).join('');
-                logContainer.scrollTop = logContainer.scrollHeight;
-            }
-            
-            // Update status
-            if (data.status) {
-                document.getElementById('alert-status').textContent = data.status.replace(/_/g, ' ');
-            }
-            
-            // Update hospital info and marker
-            if (data.selected_hospital) {
-                const h = data.selected_hospital;
-                document.getElementById('hospital-info').innerHTML = `
-                    <div>
-                        <div class="text-xs text-slate-500 mb-1">Nom</div>
-                        <div class="mono text-sm">${h.name}</div>
-                    </div>
-                    <div>
-                        <div class="text-xs text-slate-500 mb-1">Service</div>
-                        <div class="text-sm">${h.service}</div>
-                    </div>
-                    <div>
-                        <div class="text-xs text-slate-500 mb-1">Distance</div>
-                        <div class="mono text-green-400 text-sm">${h.distance_km} km</div>
-                    </div>
-                `;
-                if (h.coordinates) {
-                    persistentMap.addHospitalMarker(h.coordinates.lat, h.coordinates.lng, h.name);
-                }
-            }
-            
-            // Update route info
-            if (data.eta_minutes) {
-                document.getElementById('duration').textContent = `${data.eta_minutes} min`;
-                document.getElementById('eta-display').textContent = `00:${String(data.eta_minutes).padStart(2, '0')}`;
-            }
-            
-            // Update ambulance info
-            if (data.ambulance) {
-                document.getElementById('ambulanceId').textContent = data.ambulance.id;
-            }
-            
-            // Draw route on map
-            if (data.route_geometry && data.route_phase) {
-                try {
-                    const coords = JSON.parse(data.route_geometry);
-                    const color = data.route_phase === 'TO_PATIENT' ? '#3388ff' : '#ff0000';
-                    persistentMap.drawRoute(coords, color);
-                } catch (e) {
-                    console.error('Error parsing route:', e);
-                }
-            }
+            window.map = persistentMap.map;
         });
-                
-                workflowManager.startPolling();
-            }
-        })
-        .catch(err => console.error('Error loading map data:', err));
 });
 </script>
 {% endblock %}

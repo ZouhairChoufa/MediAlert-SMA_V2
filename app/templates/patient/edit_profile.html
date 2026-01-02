@@ -26,7 +26,7 @@
                         class="w-full bg-slate-900/50 border border-cyan-500/20 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-cyan-500/50">
                 </div>
 
-                <div>
+                <div class="col-span-2">
                     <label class="block text-sm font-medium text-slate-300 mb-2">Groupe sanguin</label>
                     <select name="blood_type"
                         class="w-full bg-slate-900/50 border border-cyan-500/20 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-cyan-500/50">
@@ -39,13 +39,8 @@
                         <option value="AB-" {% if patient.blood_type == 'AB-' %}selected{% endif %}>AB-</option>
                         <option value="O+" {% if patient.blood_type == 'O+' %}selected{% endif %}>O+</option>
                         <option value="O-" {% if patient.blood_type == 'O-' %}selected{% endif %}>O-</option>
+                        <option value="Inconnu" {% if patient.blood_type == 'Inconnu' %}selected{% endif %}>Je ne sais pas / Inconnu</option>
                     </select>
-                </div>
-
-                <div class="col-span-2">
-                    <label class="block text-sm font-medium text-slate-300 mb-2">Allergies (séparées par des virgules)</label>
-                    <input type="text" name="allergies" value="{{ patient.allergies|join(', ') }}" placeholder="Ex: Pénicilline, Arachides"
-                        class="w-full bg-slate-900/50 border border-cyan-500/20 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-cyan-500/50">
                 </div>
             </div>
 

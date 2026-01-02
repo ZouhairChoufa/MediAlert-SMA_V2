@@ -180,6 +180,15 @@ consolider_dossier_pour_ui:
   expected_output: |-
     JSON strict FINAL pour le Frontend:
     {
+      "hospital_name": "string (nom exact de l'hôpital)",
+      "distance": "float (distance totale en km)",
+      "eta": "integer (temps d'arrivée en minutes)",
+      "medical_team": [
+        {
+          "name": "string (nom du médecin)",
+          "specialty": "string (spécialité)"
+        }
+      ],
       "ui_view": {
         "message_patient": "string (ex: Une équipe SMUR arrive dans 5 min)",
         "timeline": {

@@ -2,10 +2,13 @@ from flask import Blueprint, render_template, session, redirect, url_for, reques
 from app.decorators import login_required, admin_required
 from app.models.user import UserStore
 from app.services.system_logs_service import SystemLogsService
+from app.services.firebase_service import FirebaseService
+from firebase_admin import firestore
 
 admin_bp = Blueprint('admin', __name__)
 user_store = UserStore()
 logs_service = SystemLogsService()
+firebase = FirebaseService()
 
 @admin_bp.route('/admin')
 @login_required
@@ -13,9 +16,6 @@ def admin_dashboard():
     user_role = session.get('role', 'user')
     if user_role != 'admin':
         return render_template('admin/access_denied.html')
-    
-    from app.services.firebase_service import FirebaseService
-    firebase = FirebaseService()
     
     users = user_store.get_all_users()
     recent_logs = logs_service.get_recent_logs(limit=10)
@@ -25,13 +25,17 @@ def admin_dashboard():
     total_alerts = len(list(alerts_collection.stream()))
     active_alerts = len(list(alerts_collection.where('status', '==', 'processing').stream()))
     
+    # Get theme toggle setting
+    settings_doc = firebase.db.collection('system_settings').document('theme_control').get()
+    theme_toggle_enabled = settings_doc.to_dict().get('enabled', True) if settings_doc.exists else True
+    
     stats = {
         'total_users': len(users),
         'total_alerts': total_alerts,
         'active_alerts': active_alerts
     }
     
-    return render_template('admin/dashboard.html', users=users, recent_logs=recent_logs, stats=stats)
+    return render_template('admin/dashboard.html', users=users, recent_logs=recent_logs, stats=stats, theme_toggle_enabled=theme_toggle_enabled)
 
 @admin_bp.route('/admin/user/create', methods=['POST'])
 @login_required
@@ -46,10 +50,9 @@ def create_user():
     
     user = user_store.create_user(username, email, password, role)
     if user:
-        logs_service.log_event('admin_create_user', f'Admin created user: {username}', session.get('user'), {'new_user': username, 'role': role})
-        flash('Utilisateur créé avec succès', 'success')
+        flash(f'L\'utilisateur {email} a été créé avec succès (Rôle: {role.capitalize()}).', 'success')
     else:
-        flash('Nom d\'utilisateur déjà existant', 'error')
+        flash('Email déjà utilisé ou erreur de création', 'error')
     return redirect(url_for('admin.admin_dashboard'))
 
 @admin_bp.route('/admin/user/<username>/role', methods=['POST'])
@@ -80,3 +83,87 @@ def delete_user(username):
     else:
         flash('Utilisateur introuvable', 'error')
     return redirect(url_for('admin.admin_dashboard'))
+
+@admin_bp.route('/admin/settings/theme-toggle', methods=['POST'])
+@login_required
+def toggle_theme_setting():
+    if session.get('role') != 'admin':
+        return jsonify({'error': 'Unauthorized'}), 403
+    
+    enabled = request.json.get('enabled', True)
+    
+    firebase.db.collection('system_settings').document('theme_control').set({
+        'enabled': enabled,
+        'updated_by': session.get('user'),
+        'updated_at': firestore.SERVER_TIMESTAMP
+    })
+    
+    logs_service.log_event('admin_theme_toggle', f'Admin {"enabled" if enabled else "disabled"} theme toggle for all users', session.get('user'), {'enabled': enabled})
+    
+    return jsonify({'success': True, 'enabled': enabled})
+
+@admin_bp.route('/api/settings/theme-toggle', methods=['GET'])
+def get_theme_setting():
+    settings_doc = firebase.db.collection('system_settings').document('theme_control').get()
+    enabled = settings_doc.to_dict().get('enabled', True) if settings_doc.exists else True
+    return jsonify({'enabled': enabled})
+
+@admin_bp.route('/admin/agents-documentation')
+@login_required
+def agents_documentation():
+    user_role = session.get('role', 'user')
+    if user_role != 'admin':
+        return render_template('admin/access_denied.html')
+    
+    return render_template('admin/agents_documentation.html')
+
+@admin_bp.route('/admin/test')
+def test_route():
+    return "Test route works"
+
+@admin_bp.route('/admin/user/<username>')
+@login_required
+def user_detail_view(username):
+    if session.get('role') != 'admin':
+        return render_template('admin/access_denied.html')
+    
+    # Get user and patient data
+    user = user_store.get_user(username)
+    if not user:
+        flash('Utilisateur introuvable', 'error')
+        return redirect(url_for('admin.admin_dashboard'))
+    
+    from app.models.patient import PatientStore
+    patient_store = PatientStore()
+    patient = patient_store.get_profile(username)
+    
+    # Get user's alerts from Firestore
+    try:
+        alerts_query = firebase.db.collection('alerts').where(filter=firestore.FieldFilter('username', '==', username)).order_by('created_at', direction=firestore.Query.DESCENDING)
+        alerts = [doc.to_dict() | {'alert_id': doc.id} for doc in alerts_query.stream()]
+    except Exception as e:
+        # Fallback without ordering if index doesn't exist
+        alerts_query = firebase.db.collection('alerts').where(filter=firestore.FieldFilter('username', '==', username))
+        alerts = [doc.to_dict() | {'alert_id': doc.id} for doc in alerts_query.stream()]
+    
+    # Parse alert data
+    normalized_alerts = []
+    for alert in alerts:
+        normalized_alert = alert.copy()
+        if 'patient' in alert and isinstance(alert['patient'], str):
+            try:
+                import json
+                normalized_alert['patient'] = json.loads(alert['patient'])
+            except:
+                pass
+        if 'dispatch_info' in alert and isinstance(alert['dispatch_info'], str):
+            try:
+                import json
+                normalized_alert['dispatch_result'] = json.loads(alert['dispatch_info'])
+            except:
+                pass
+        normalized_alerts.append(normalized_alert)
+    
+    return render_template('admin/user_detail_view.html', user=user, patient=patient, alerts=normalized_alerts, username=username)
+
+

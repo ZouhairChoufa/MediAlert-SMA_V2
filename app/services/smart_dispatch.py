@@ -35,13 +35,6 @@ class SmartDispatchEngine:
         c = 2 * atan2(sqrt(a), sqrt(1-a))
         return R * c
     
-    def calculate_weighted_score(self, distance_km, travel_time_min, emergency_level):
-        """Calculate hospital priority score (lower is better)"""
-        weights = {'distance': 0.4, 'time': 0.5, 'emergency': 0.1}
-        emergency_factor = 1.0 if emergency_level >= 3 else 0.8
-        return (distance_km * weights['distance'] + 
-                travel_time_min * weights['time']) * emergency_factor
-    
     def dispatch_ambulance(self, patient_lat, patient_lon, emergency_level=2, ambulance_coords=None):
         """Main dispatch workflow"""
         self.load_hospitals()
@@ -72,21 +65,27 @@ class SmartDispatchEngine:
         hospital = optimal['hospital']
         
         # Step 4: Calculate full mission trajectory
+        dist_leg1 = 0
+        dist_leg2 = optimal['distance_km'] # Par défaut Haversine
+        
         if self.ors_service:
             try:
-                # Ambulance -> Patient
+                # Leg 1: Ambulance -> Patient
                 leg1 = self.ors_service.get_route(
                     start_coords=[ambulance_coords[1], ambulance_coords[0]],
                     end_coords=[patient_lon, patient_lat]
                 )
                 
-                # Patient -> Hospital
+                # Leg 2: Patient -> Hospital
                 leg2 = self.ors_service.get_route(
                     start_coords=[patient_lon, patient_lat],
                     end_coords=[hospital['lng'], hospital['lat']]
                 )
                 
-                total_distance = leg1.get('distance_km', 0) + leg2.get('distance_km', 0)
+                dist_leg1 = leg1.get('distance_km', 0)
+                dist_leg2 = leg2.get('distance_km', 0)
+                
+                total_distance = dist_leg1 + dist_leg2
                 total_time = leg1.get('duration_min', 0) + leg2.get('duration_min', 0)
                 full_geometry = leg2.get('geometry', '')
                 
@@ -111,6 +110,11 @@ class SmartDispatchEngine:
             'mission': {
                 'total_distance_km': round(total_distance, 2),
                 'total_eta_minutes': int(total_time),
+                
+                # --- CORRECTION : ON RENVOIE LES DISTANCES DISTINCTES ---
+                'dist_leg1_km': round(dist_leg1, 2), # Amb -> Pat
+                'dist_leg2_km': round(dist_leg2, 2), # Pat -> Hosp
+                
                 'ambulance_to_patient_min': leg1.get('duration_min', 5) if 'leg1' in locals() else 5,
                 'patient_to_hospital_min': leg2.get('duration_min', 10) if 'leg2' in locals() else 10,
                 'trajectory_geometry': full_geometry,

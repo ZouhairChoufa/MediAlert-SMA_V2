@@ -7,7 +7,6 @@
 <div class="max-w-4xl mx-auto">
     <div class="glass-panel p-8">
         <form id="alertForm" class="space-y-6">
-            <!-- Patient Info -->
             <div class="grid grid-cols-2 gap-6">
                 <div>
                     <label class="block text-sm text-slate-400 mb-2">Nom & Prénom</label>
@@ -32,7 +31,6 @@
                 </div>
             </div>
 
-            <!-- Symptoms -->
             <div>
                 <label class="block text-sm text-slate-400 mb-2">Symptômes</label>
                 <textarea name="symptomes" rows="4" required
@@ -40,7 +38,6 @@
                     placeholder="Décrivez les symptômes..."></textarea>
             </div>
 
-            <!-- Location -->
             <div>
                 <label class="block text-sm text-slate-400 mb-2">Localisation</label>
                 <div class="relative">
@@ -62,7 +59,6 @@
                 </p>
             </div>
 
-            <!-- Submit -->
             <button type="submit" 
                 class="w-full bg-gradient-to-r from-red-500 to-red-600 text-white py-4 rounded-lg font-semibold hover:shadow-lg hover:shadow-red-500/50 transition-all">
                 <i class="fas fa-ambulance mr-2"></i>
@@ -73,18 +69,22 @@
 </div>
 
 <script>
-// Location detection
+// Location detection setup
 const detectBtn = document.getElementById('detectLocationBtn');
 const locationInput = document.getElementById('locationInput');
 const locationStatus = document.getElementById('locationStatus');
 const latInput = document.getElementById('lat');
 const lngInput = document.getElementById('lng');
 
+// --- GESTION DU BOUTON GPS ---
 detectBtn.addEventListener('click', async () => {
     const icon = detectBtn.querySelector('i');
     icon.className = 'fas fa-spinner fa-spin text-cyan-400';
     locationStatus.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Détection en cours...';
     
+    // Si l'utilisateur clique sur GPS, on vide le champ texte pour éviter les conflits
+    locationInput.value = ''; 
+
     if (navigator.geolocation) {
         navigator.geolocation.getCurrentPosition(
             async (position) => {
@@ -105,61 +105,104 @@ detectBtn.addEventListener('click', async () => {
                 icon.className = 'fas fa-crosshairs text-cyan-400';
             },
             async () => {
-                try {
-                    const response = await fetch('/api/detect-ip-location', { method: 'POST' });
-                    const result = await response.json();
-                    if (result.success) {
-                        const loc = result.location;
-                        latInput.value = loc.lat;
-                        lngInput.value = loc.lng;
-                        locationInput.value = `${loc.city}, ${loc.country}`;
-                        locationStatus.innerHTML = '<i class="fas fa-info-circle text-yellow-400"></i> Position détectée par IP';
-                    }
-                } catch (e) {
-                    locationStatus.innerHTML = '<i class="fas fa-exclamation-circle text-red-400"></i> Détection échouée';
-                }
-                icon.className = 'fas fa-crosshairs text-cyan-400';
+                // Fallback IP si GPS refusé
+                handleIpFallback(icon);
             }
         );
     } else {
-        try {
-            const response = await fetch('/api/detect-ip-location', { method: 'POST' });
-            const result = await response.json();
-            if (result.success) {
-                const loc = result.location;
-                latInput.value = loc.lat;
-                lngInput.value = loc.lng;
-                locationInput.value = `${loc.city}, ${loc.country}`;
-                locationStatus.innerHTML = '<i class="fas fa-info-circle text-yellow-400"></i> Position détectée par IP';
-            }
-        } catch (e) {
-            locationStatus.innerHTML = '<i class="fas fa-exclamation-circle text-red-400"></i> Erreur';
-        }
-        icon.className = 'fas fa-crosshairs text-cyan-400';
+        handleIpFallback(icon);
     }
 });
 
+async function handleIpFallback(icon) {
+    try {
+        const response = await fetch('/api/detect-ip-location', { method: 'POST' });
+        const result = await response.json();
+        if (result.success) {
+            const loc = result.location;
+            latInput.value = loc.lat;
+            lngInput.value = loc.lng;
+            locationInput.value = `${loc.city}, ${loc.country}`;
+            locationStatus.innerHTML = '<i class="fas fa-info-circle text-yellow-400"></i> Position détectée par IP';
+        }
+    } catch (e) {
+        locationStatus.innerHTML = '<i class="fas fa-exclamation-circle text-red-400"></i> Erreur détection';
+    }
+    icon.className = 'fas fa-crosshairs text-cyan-400';
+}
+
+// --- GESTION DE LA SOUMISSION (LOGIQUE CORRIGÉE) ---
 const form = document.getElementById('alertForm');
 
 form.addEventListener('submit', async (e) => {
     e.preventDefault();
-    const formData = new FormData(e.target);
-    const data = Object.fromEntries(formData);
-    
     const btn = e.target.querySelector('button[type="submit"]');
     const originalText = btn.innerHTML;
-    btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>TRAITEMENT EN COURS...';
+    
+    // Désactiver le bouton immédiatement pour éviter le double clic
     btn.disabled = true;
     
     try {
+        console.log('\n=== ALERT FORM SUBMIT ===');
+        
+        // STEP 1: Vérifier la saisie manuelle (Priorité 1)
+        const manualAddress = locationInput.value && locationInput.value.trim();
+        
+        // Si l'utilisateur a écrit une adresse, on la traite en priorité absolue
+        if (manualAddress) {
+            console.log('[FORM] 🔍 Adresse manuelle détectée, lancement du géocodage...');
+            
+            // UI Feedback
+            btn.innerHTML = '<i class="fas fa-satellite-dish fa-spin mr-2"></i>VÉRIFICATION ADRESSE...';
+            
+            // On vide les anciennes coordonnées GPS (hidden inputs) pour forcer la nouvelle adresse
+            latInput.value = '';
+            lngInput.value = '';
+            
+            try {
+                // Appel Backend (API Geocode) - AWAIT est crucial ici
+                const geoResponse = await fetch('/api/geocode', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ address: manualAddress })
+                });
+                
+                const geoResult = await geoResponse.json();
+                
+                if (geoResponse.ok && geoResult.lat && geoResult.lng) {
+                    console.log('[FORM] ✅ Géocodage réussi:', geoResult);
+                    latInput.value = geoResult.lat;
+                    lngInput.value = geoResult.lng;
+                } else {
+                    console.warn('[FORM] ⚠️ Échec géocodage, envoi du texte brut au backend');
+                }
+            } catch (geoError) {
+                console.error('[FORM] ❌ Erreur réseau géocodage:', geoError);
+            }
+        } 
+        
+        // UI Feedback final
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>ENVOI ALERTE...';
+
+        // STEP 2: Préparation des données
+        const formData = new FormData(e.target);
+        const data = Object.fromEntries(formData);
+        
+        // STEP 3: Ajout des coordonnées finales si disponibles
         if (latInput.value && lngInput.value) {
             data.gps_coords = {
                 lat: parseFloat(latInput.value),
                 lng: parseFloat(lngInput.value),
-                accuracy: 50
+                accuracy: manualAddress ? 10 : 50 
             };
+            // On s'assure que lat/lng sont aussi à la racine de l'objet JSON
+            data.lat = parseFloat(latInput.value);
+            data.lng = parseFloat(lngInput.value);
         }
         
+        console.log('[FORM] Envoi des données finales:', data);
+
+        // STEP 4: Envoi final
         const response = await fetch('/api/alert', {
             method: 'POST',
             headers: {'Content-Type': 'application/json'},
@@ -169,21 +212,21 @@ form.addEventListener('submit', async (e) => {
         const result = await response.json();
         
         if (response.ok && result.alert_id) {
+            console.log('[FORM] ✅ Succès, redirection...');
             window.location.href = `/tracking/${result.alert_id}`;
         } else {
-            alert('Erreur: ' + (result.error || 'Erreur inconnue'));
-            btn.innerHTML = originalText;
-            btn.disabled = false;
+            throw new Error(result.error || 'Erreur inconnue');
         }
+
     } catch (error) {
-        console.error('Error:', error);
-        alert('Erreur de connexion');
+        console.error('[FORM] ❌ Erreur:', error);
+        alert('Erreur lors de la création de l\'alerte: ' + error.message);
         btn.innerHTML = originalText;
         btn.disabled = false;
     }
 });
 
-// Handle Enter key on all inputs except textarea
+// Gestion touche Entrée pour soumettre le formulaire
 document.querySelectorAll('#alertForm input, #alertForm select').forEach(input => {
     input.addEventListener('keypress', (e) => {
         if (e.key === 'Enter') {

@@ -219,6 +219,25 @@ button:active {
     background: rgba(6, 182, 212, 0.5);
 }
 
+/* Custom Scrollbar Class */
+.custom-scrollbar::-webkit-scrollbar {
+    width: 6px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+    background: rgba(15, 23, 42, 0.3);
+    border-radius: 3px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+    background: linear-gradient(180deg, rgba(6, 182, 212, 0.4), rgba(59, 130, 246, 0.4));
+    border-radius: 3px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(180deg, rgba(6, 182, 212, 0.6), rgba(59, 130, 246, 0.6));
+}
+
 /* Map Markers */
 .leaflet-marker-icon {
     transition: all 0.3s ease;

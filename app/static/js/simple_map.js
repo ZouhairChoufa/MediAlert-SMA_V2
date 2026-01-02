@@ -1,56 +1,37 @@
-// Simple Static Map - No animations, theme-locked
+/**
+ * SimpleMap - Initialisation de la carte Leaflet
+ * Version Épurée pour MediAlert (Sans conflits)
+ */
 class SimpleMap {
-    constructor(containerId, patientLat, patientLng, patientName) {
-        this.map = L.map(containerId, {
-            center: [patientLat, patientLng],
-            zoom: 14,
-            zoomControl: true
-        });
-        
-        // Standard OSM tiles - never changes
+    constructor(divId, lat, lng, patientName) {
+        this.map = null;
+        this.initMap(divId, lat, lng, patientName);
+    }
+
+    initMap(divId, lat, lng, name) {
+        // 1. Création de la carte
+        this.map = L.map(divId).setView([lat, lng], 14);
+
+        // 2. Ajout des tuiles (OpenStreetMap)
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            maxZoom: 19,
-            attribution: '© OpenStreetMap'
+            attribution: '© OpenStreetMap contributors'
         }).addTo(this.map);
-        
-        // Red patient marker
-        const redIcon = L.icon({
-            iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-red.png',
-            shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png',
-            iconSize: [25, 41],
-            iconAnchor: [12, 41],
-            popupAnchor: [1, -34],
-            shadowSize: [41, 41]
-        });
-        
-        L.marker([patientLat, patientLng], { icon: redIcon })
-            .addTo(this.map)
-            .bindPopup(`<b>${patientName}</b><br>Patient Location`)
-            .openPopup();
-    }
-    
-    addHospitalMarker(lat, lng, name) {
-        const blueIcon = L.icon({
+
+        // 3. Marqueur Patient (Bleu fixe par défaut)
+        const patientIcon = L.icon({
             iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-blue.png',
-            shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png',
+            shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
             iconSize: [25, 41],
             iconAnchor: [12, 41],
             popupAnchor: [1, -34],
             shadowSize: [41, 41]
         });
-        
-        L.marker([lat, lng], { icon: blueIcon })
+
+        L.marker([lat, lng], {icon: patientIcon})
             .addTo(this.map)
-            .bindPopup(`<b>${name}</b><br>Hospital`);
-    }
-    
-    drawRoute(coordinates, color = '#3388ff') {
-        L.polyline(coordinates, {
-            color: color,
-            weight: 4,
-            opacity: 0.7
-        }).addTo(this.map);
+            .bindPopup(`<b>${name}</b><br>Position Patient`)
+            .openPopup();
+        
+        console.log("✅ [SimpleMap] Carte initialisée avec succès.");
     }
 }
-
-window.SimpleMap = SimpleMap;

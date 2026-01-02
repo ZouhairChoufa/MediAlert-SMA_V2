@@ -17,7 +17,6 @@ def login():
             session['user'] = username
             session['role'] = user.role
             logs_service.log_event('login', f'User {username} logged in', username)
-            flash('Connexion réussie!', 'success')
             return redirect(url_for('web.index'))
         
         flash('Identifiants incorrects', 'error')

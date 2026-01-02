@@ -1,11 +1,29 @@
 {% extends "base.html" %}
 
-{% block title %}Mon Profil - MediAlert SMA{% endblock %}
-{% block header %}MON PROFIL PATIENT{% endblock %}
+{% block title %}Profil Utilisateur - {{ username }} - MediAlert SMA{% endblock %}
+{% block header %}PROFIL UTILISATEUR - {{ username|upper }}{% endblock %}
 
 {% block content %}
 <div class="max-w-6xl mx-auto space-y-6">
-    <!-- Profile Header -->
+    <!-- Back Button -->
+    <a href="/admin" class="inline-flex items-center text-cyan-400 hover:text-cyan-300 mb-6">
+        <i class="fas fa-arrow-left mr-2"></i>Retour au Dashboard Admin
+    </a>
+
+    <!-- Admin Actions -->
+    <div class="glass-panel p-6 rounded-xl border border-orange-500/20">
+        <div class="flex items-center justify-between">
+            <div>
+                <h3 class="text-lg font-semibold text-orange-400">Actions Administrateur</h3>
+                <p class="text-sm text-slate-400">Total Alertes Émises: {{ alerts|length }}</p>
+            </div>
+            <button onclick="resetUserPassword('{{ user.email }}')" class="px-4 py-2 bg-orange-500/20 text-orange-400 rounded-lg hover:bg-orange-500/30 transition-all">
+                <i class="fas fa-key mr-2"></i>Envoyer Email de Réinitialisation
+            </button>
+        </div>
+    </div>
+
+    <!-- Profile Header (Read-Only) -->
     <div class="glass-panel p-8">
         <div class="flex items-center justify-between mb-6">
             <div class="flex items-center space-x-4">
@@ -13,21 +31,33 @@
                     <i class="fas fa-user text-white text-3xl"></i>
                 </div>
                 <div>
+                    {% if patient %}
                     <div class="flex items-center gap-3">
                         <h2 class="text-2xl font-bold text-white">{{ patient.nom_prenom }}</h2>
-                        <span class="text-sm font-semibold px-3 py-1 rounded-full flex items-center gap-2 {% if user.role == 'admin' %}bg-purple-100 text-purple-700{% else %}bg-gray-100 text-gray-600{% endif %}">
+                        <span class="text-sm font-semibold px-3 py-1 rounded-full flex items-center gap-1.5 {% if user.role == 'admin' %}bg-purple-500/20 text-purple-400{% else %}bg-slate-500/20 text-slate-400{% endif %}">
                             <i class="fas {% if user.role == 'admin' %}fa-user-shield{% else %}fa-user{% endif %}"></i>
-                            {% if user.role == 'admin' %}Admin{% else %}Patient{% endif %}
+                            {{ user.role|capitalize }}
                         </span>
                     </div>
                     <p class="text-slate-400">{{ patient.age }} ans • {{ patient.sexe }}</p>
+                    {% else %}
+                    <div class="flex items-center gap-3">
+                        <h2 class="text-2xl font-bold text-white">{{ username }}</h2>
+                        <span class="text-sm font-semibold px-3 py-1 rounded-full flex items-center gap-1.5 {% if user.role == 'admin' %}bg-purple-500/20 text-purple-400{% else %}bg-slate-500/20 text-slate-400{% endif %}">
+                            <i class="fas {% if user.role == 'admin' %}fa-user-shield{% else %}fa-user{% endif %}"></i>
+                            {{ user.role|capitalize }}
+                        </span>
+                    </div>
+                    <p class="text-slate-400">Profil patient non créé</p>
+                    {% endif %}
                 </div>
             </div>
-            <a href="{{ url_for('patient.edit_profile') }}" class="px-4 py-2 bg-cyan-500 hover:bg-cyan-600 rounded-lg transition-colors">
-                <i class="fas fa-edit mr-2"></i>Modifier
-            </a>
+            <span class="px-3 py-1 bg-red-500/20 text-red-400 rounded-full text-sm">
+                <i class="fas fa-eye mr-1"></i>Mode Lecture Seule
+            </span>
         </div>
 
+        {% if patient %}
         <div class="grid grid-cols-2 gap-6">
             <div>
                 <label class="text-sm text-slate-400">Email</label>
@@ -46,6 +76,12 @@
                 <p class="text-white">{{ patient.blood_type or 'Non renseigné' }}</p>
             </div>
         </div>
+        {% else %}
+        <div class="text-center py-8">
+            <i class="fas fa-user-slash text-slate-600 text-4xl mb-4"></i>
+            <p class="text-slate-400">Cet utilisateur n'a pas encore créé son profil patient</p>
+        </div>
+        {% endif %}
     </div>
 
     <!-- Alerts History -->
@@ -56,37 +92,11 @@
             </h3>
             <span class="text-sm text-slate-400">{{ alerts|length }} alerte(s)</span>
         </div>
-        
-        <!-- Search Field -->
-        <div class="mb-6">
-            <form method="GET" class="flex space-x-3">
-                <div class="flex-1 relative">
-                    <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"></i>
-                    <input type="text" name="search" value="{{ search_query or '' }}" 
-                           placeholder="Rechercher par symptômes ou hôpital..." 
-                           class="w-full pl-10 pr-4 py-2 bg-slate-800/50 border border-cyan-500/20 rounded-lg text-white placeholder-slate-400 focus:outline-none focus:border-cyan-500/50">
-                </div>
-                <button type="submit" class="px-4 py-2 bg-cyan-500/20 text-cyan-400 rounded-lg hover:bg-cyan-500/30 transition-all">
-                    <i class="fas fa-search"></i>
-                </button>
-                {% if search_query %}
-                <a href="{{ url_for('patient.profile') }}" class="px-4 py-2 bg-slate-700 text-white rounded-lg hover:bg-slate-600 transition-all">
-                    <i class="fas fa-times"></i>
-                </a>
-                {% endif %}
-            </form>
-        </div>
 
-        {% if search_query and not alerts %}
-        <div class="text-center py-12">
-            <i class="fas fa-search text-slate-600 text-5xl mb-4"></i>
-            <p class="text-slate-400">Aucun résultat pour "{{ search_query }}"</p>
-        </div>
-        {% elif alerts %}
+        {% if alerts %}
         <div class="space-y-4 max-h-[500px] overflow-y-auto custom-scrollbar">
             {% for alert in alerts %}
-            <a href="{{ url_for('patient.alert_detail', alert_id=alert.alert_id) }}" 
-               class="block p-4 bg-slate-800/50 hover:bg-slate-800 rounded-lg border border-cyan-500/20 hover:border-cyan-500/50 transition-all">
+            <div class="block p-4 bg-slate-800/50 rounded-lg border border-cyan-500/20">
                 <div class="flex items-center justify-between">
                     <div class="flex-1">
                         <div class="flex items-center space-x-3 mb-2">
@@ -99,6 +109,7 @@
                                 {% else %}En attente{% endif %}
                             </span>
                             <span class="text-sm text-slate-400">{{ alert.created_at[:10] if alert.created_at else 'Date inconnue' }}</span>
+                            <span class="text-xs text-slate-500">ID: {{ alert.alert_id }}</span>
                         </div>
                         <p class="text-white font-medium">
                             {{ alert.get('patient', {}).get('symptomes', alert.get('description', alert.get('symptoms', 'Urgence médicale'))) }}
@@ -116,9 +127,8 @@
                             {{ hospital_name or 'Hôpital non assigné' }}
                         </p>
                     </div>
-                    <i class="fas fa-chevron-right text-cyan-400"></i>
                 </div>
-            </a>
+            </div>
             {% endfor %}
         </div>
         {% else %}
@@ -129,4 +139,14 @@
         {% endif %}
     </div>
 </div>
+
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+function resetUserPassword(email) {
+    resetPasswordGlobal(email);
+}
+</script>
 {% endblock %}

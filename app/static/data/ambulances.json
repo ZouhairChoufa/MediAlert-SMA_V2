@@ -1,0 +1,38 @@
+[
+  {
+    "id": "AMB-001",
+    "name": "Unité Mobile 1 (SMUR)",
+    "type": "Type A (Réanimation)",
+    "current_lat": 33.235397,
+    "current_lng": -8.479131,
+    "status": "available",
+    "base": "Hôpital Provincial Mohammed V"
+  },
+  {
+    "id": "AMB-002",
+    "name": "Ambulance 02 (Standard)",
+    "type": "Type B",
+    "current_lat": 33.2485,
+    "current_lng": -8.5050,
+    "status": "available",
+    "base": "Clinique El Jadida"
+  },
+  {
+    "id": "AMB-CASA-01",
+    "name": "SMUR Casablanca Centre",
+    "type": "Type A (Réanimation)",
+    "current_lat": 33.5731,
+    "current_lng": -7.5898,
+    "status": "available",
+    "base": "CHU Ibn Rochd"
+  },
+  {
+    "id": "AMB-CASA-02",
+    "name": "Ambulance Casa Ouest",
+    "type": "Type B",
+    "current_lat": 33.5450,
+    "current_lng": -7.6150,
+    "status": "available",
+    "base": "Caserne Ain Chock"
+  }
+]

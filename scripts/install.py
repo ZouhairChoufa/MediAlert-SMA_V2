@@ -11,7 +11,7 @@ def install_dependencies():
     print("Installing MediAlert SMA v2.0 dependencies...")
     
     try:
-        subprocess.check_call([sys.executable, "-m", "pip", "install", "-r", "requirements_fixed.txt"])
+        subprocess.check_call([sys.executable, "-m", "pip", "install", "-r", "../requirements.txt"])
         print("Dependencies installed successfully!")
         return True
     except subprocess.CalledProcessError as e:

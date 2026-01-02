@@ -1,0 +1,141 @@
+{% extends "base.html" %}
+
+{% block title %}Documentation des Agents IA - MediAlert SMA{% endblock %}
+{% block header %}DOCUMENTATION DES AGENTS IA{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+    <!-- Process Flow Diagram -->
+    <div class="glass-panel p-6 rounded-xl border border-cyan-500/20">
+        <h3 class="text-xl font-semibold text-cyan-400 mb-6">
+            <i class="fas fa-sitemap mr-2"></i>Flux de Traitement des Urgences
+        </h3>
+        <div class="flex items-center justify-center space-x-4 overflow-x-auto">
+            <div class="flex items-center space-x-4 min-w-max">
+                <div class="flex flex-col items-center">
+                    <div class="w-16 h-16 rounded-full bg-red-500/20 border-2 border-red-500 flex items-center justify-center">
+                        <i class="fas fa-exclamation-triangle text-red-400 text-xl"></i>
+                    </div>
+                    <span class="text-sm text-white mt-2">Alerte</span>
+                </div>
+                <i class="fas fa-arrow-right text-cyan-400 text-xl"></i>
+                <div class="flex flex-col items-center">
+                    <div class="w-16 h-16 rounded-full bg-cyan-500/20 border-2 border-cyan-500 flex items-center justify-center">
+                        <i class="fas fa-user-tie text-cyan-400 text-xl"></i>
+                    </div>
+                    <span class="text-sm text-white mt-2">Coordinateur</span>
+                </div>
+                <i class="fas fa-arrow-right text-cyan-400 text-xl"></i>
+                <div class="flex flex-col items-center">
+                    <div class="w-16 h-16 rounded-full bg-green-500/20 border-2 border-green-500 flex items-center justify-center">
+                        <i class="fas fa-ambulance text-green-400 text-xl"></i>
+                    </div>
+                    <span class="text-sm text-white mt-2">Ambulance</span>
+                </div>
+                <i class="fas fa-arrow-right text-cyan-400 text-xl"></i>
+                <div class="flex flex-col items-center">
+                    <div class="w-16 h-16 rounded-full bg-blue-500/20 border-2 border-blue-500 flex items-center justify-center">
+                        <i class="fas fa-hospital text-blue-400 text-xl"></i>
+                    </div>
+                    <span class="text-sm text-white mt-2">Hôpital</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Agents Documentation Grid -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <!-- Agent Coordinateur -->
+        <div class="glass-panel p-6 rounded-xl border border-cyan-500/20">
+            <div class="flex items-center mb-4">
+                <div class="w-12 h-12 rounded-full bg-cyan-500/20 flex items-center justify-center mr-4">
+                    <i class="fas fa-user-tie text-cyan-400 text-xl"></i>
+                </div>
+                <h3 class="text-lg font-semibold text-cyan-400">Agent Coordinateur</h3>
+            </div>
+            <div class="space-y-3 text-sm text-slate-300">
+                <p><i class="fas fa-check text-green-400 mr-2"></i>Reçoit les alertes d'urgence</p>
+                <p><i class="fas fa-check text-green-400 mr-2"></i>Calcule les distances aux hôpitaux</p>
+                <p><i class="fas fa-check text-green-400 mr-2"></i>Sélectionne l'hôpital optimal</p>
+                <p><i class="fas fa-check text-green-400 mr-2"></i>Coordonne la réponse d'urgence</p>
+            </div>
+            <div class="mt-4 p-3 bg-slate-800/50 rounded-lg">
+                <span class="text-xs text-slate-500">Rôle Principal:</span>
+                <p class="text-sm text-white">Orchestration et prise de décision stratégique</p>
+            </div>
+        </div>
+
+        <!-- Agent Ambulance -->
+        <div class="glass-panel p-6 rounded-xl border border-green-500/20">
+            <div class="flex items-center mb-4">
+                <div class="w-12 h-12 rounded-full bg-green-500/20 flex items-center justify-center mr-4">
+                    <i class="fas fa-ambulance text-green-400 text-xl"></i>
+                </div>
+                <h3 class="text-lg font-semibold text-green-400">Agent Ambulance</h3>
+            </div>
+            <div class="space-y-3 text-sm text-slate-300">
+                <p><i class="fas fa-check text-green-400 mr-2"></i>Calcule l'itinéraire optimal</p>
+                <p><i class="fas fa-check text-green-400 mr-2"></i>Simule le trajet vers le patient</p>
+                <p><i class="fas fa-check text-green-400 mr-2"></i>Gère la prise en charge</p>
+                <p><i class="fas fa-check text-green-400 mr-2"></i>Transport vers l'hôpital</p>
+            </div>
+            <div class="mt-4 p-3 bg-slate-800/50 rounded-lg">
+                <span class="text-xs text-slate-500">Rôle Principal:</span>
+                <p class="text-sm text-white">Navigation et transport d'urgence</p>
+            </div>
+        </div>
+
+        <!-- Agent Hôpital -->
+        <div class="glass-panel p-6 rounded-xl border border-blue-500/20">
+            <div class="flex items-center mb-4">
+                <div class="w-12 h-12 rounded-full bg-blue-500/20 flex items-center justify-center mr-4">
+                    <i class="fas fa-hospital text-blue-400 text-xl"></i>
+                </div>
+                <h3 class="text-lg font-semibold text-blue-400">Agent Hôpital</h3>
+            </div>
+            <div class="space-y-3 text-sm text-slate-300">
+                <p><i class="fas fa-check text-green-400 mr-2"></i>Gère la disponibilité des lits</p>
+                <p><i class="fas fa-check text-green-400 mr-2"></i>Prépare l'accueil du patient</p>
+                <p><i class="fas fa-check text-green-400 mr-2"></i>Coordonne avec le personnel</p>
+                <p><i class="fas fa-check text-green-400 mr-2"></i>Confirme la réception</p>
+            </div>
+            <div class="mt-4 p-3 bg-slate-800/50 rounded-lg">
+                <span class="text-xs text-slate-500">Rôle Principal:</span>
+                <p class="text-sm text-white">Accueil et prise en charge hospitalière</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Technical Details -->
+    <div class="glass-panel p-6 rounded-xl border border-cyan-500/20">
+        <h3 class="text-xl font-semibold text-cyan-400 mb-6">
+            <i class="fas fa-cogs mr-2"></i>Détails Techniques
+        </h3>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+                <h4 class="text-lg font-medium text-white mb-3">Architecture Multi-Agents</h4>
+                <ul class="space-y-2 text-sm text-slate-300">
+                    <li><i class="fas fa-dot-circle text-cyan-400 mr-2"></i>Système distribué et autonome</li>
+                    <li><i class="fas fa-dot-circle text-cyan-400 mr-2"></i>Communication inter-agents</li>
+                    <li><i class="fas fa-dot-circle text-cyan-400 mr-2"></i>Prise de décision collaborative</li>
+                </ul>
+            </div>
+            <div>
+                <h4 class="text-lg font-medium text-white mb-3">Technologies Utilisées</h4>
+                <ul class="space-y-2 text-sm text-slate-300">
+                    <li><i class="fas fa-dot-circle text-cyan-400 mr-2"></i>Intelligence Artificielle</li>
+                    <li><i class="fas fa-dot-circle text-cyan-400 mr-2"></i>Algorithmes d'optimisation</li>
+                    <li><i class="fas fa-dot-circle text-cyan-400 mr-2"></i>Géolocalisation en temps réel</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- Back Button -->
+    <div class="flex justify-center">
+        <a href="/admin" class="px-6 py-3 bg-cyan-500/20 text-cyan-400 rounded-lg hover:bg-cyan-500/30 transition-all">
+            <i class="fas fa-arrow-left mr-2"></i>Retour au Dashboard
+        </a>
+    </div>
+</div>
+{% endblock %}

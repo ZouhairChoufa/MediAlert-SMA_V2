@@ -20,6 +20,10 @@
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     
+    <!-- Firebase Client SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+    
     <!-- Custom CSS -->
     <link rel="stylesheet" href="{{ url_for('static', filename='css/custom.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/light-mode.css') }}">
@@ -29,9 +33,49 @@
         body { font-family: 'Inter', sans-serif; transition: background-color 0.3s ease; }
         .mono { font-family: 'JetBrains Mono', monospace; }
         html.light-mode .leaflet-tile-pane { filter: brightness(1.1) contrast(0.9); }
+        
+        /* Disable transitions during initial load */
+        .no-transitions * {
+            transition: none !important;
+            animation: none !important;
+        }
     </style>
+    
+    <!-- Blocking Theme Script - Prevents FOIT -->
+    <script>
+        (function() {
+            // Add no-transitions class immediately
+            document.documentElement.classList.add('no-transitions');
+            
+            // Check localStorage and apply theme immediately to html element
+            const savedTheme = localStorage.getItem('theme');
+            if (savedTheme === 'light') {
+                document.documentElement.classList.add('light-mode');
+            }
+            
+            // Remove no-transitions class after a brief delay
+            setTimeout(() => {
+                document.documentElement.classList.remove('no-transitions');
+            }, 100);
+        })();
+    </script>
 </head>
 <body class="h-full bg-slate-950 text-slate-200 overflow-hidden">
+    <script>
+        // Apply theme to body immediately when it loads and set correct icon
+        const savedTheme = localStorage.getItem('theme');
+        if (savedTheme === 'light') {
+            document.body.classList.add('light-mode');
+        }
+        
+        // Set correct icon immediately
+        document.addEventListener('DOMContentLoaded', function() {
+            const icon = document.querySelector('#themeToggle i');
+            if (icon && savedTheme === 'light') {
+                icon.classList.replace('fa-moon', 'fa-sun');
+            }
+        });
+    </script>
     <div class="flex h-full">
         <!-- Sidebar -->
         <aside class="w-20 bg-slate-900/50 backdrop-blur-xl border-r border-cyan-500/20 flex flex-col items-center py-6 space-y-8 relative z-[60] overflow-visible">
@@ -84,7 +128,7 @@
             </div>
             
             <!-- Theme Toggle -->
-            <button id="themeToggle" class="w-10 h-10 rounded-full bg-slate-800/50 flex items-center justify-center hover:bg-slate-700/50 transition-all" title="Changer le thème">
+            <button id="themeToggle" class="w-10 h-10 rounded-full bg-slate-800/50 flex items-center justify-center hover:bg-slate-700/50 transition-all hidden" title="Changer le thème">
                 <i class="fas fa-moon text-cyan-400"></i>
             </button>
         </aside>
@@ -115,12 +159,12 @@
                         <span class="text-sm text-slate-400">
                             <i class="fas fa-user-circle mr-1"></i>{{ session.get('user') }}
                         </span>
-                        <a href="{{ url_for('auth.logout') }}" class="text-xs text-red-400 hover:text-red-300">
+                        <a href="{{ url_for('auth.logout') }}" class="text-base font-medium text-red-400 hover:text-red-300">
                             <i class="fas fa-sign-out-alt mr-1"></i>Déconnexion
                         </a>
                     </div>
                     {% else %}
-                    <a href="{{ url_for('auth.login') }}" class="text-xl font-bold text-cyan-400 hover:text-cyan-300 flex items-center">
+                    <a href="{{ url_for('auth.login') }}" class="text-base font-medium text-cyan-400 hover:text-cyan-300 flex items-center">
                         <i class="fas fa-sign-in-alt mr-2"></i>Connexion                    
                     </a>
                     {% endif %}
@@ -178,33 +222,295 @@
         </div>
     </div>
 
+    <!-- Success Modal -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                {% if category == 'success' %}
+                <div id="successModal" class="fixed inset-0 z-[9999] flex items-center justify-center">
+                    <div class="absolute inset-0 bg-black/50 backdrop-blur-sm" onclick="hideSuccessModal()"></div>
+                    <div class="relative bg-emerald-50 p-6 rounded-xl border border-emerald-200 max-w-md w-full mx-4 shadow-2xl animate-fade-in">
+                        <div class="text-center">
+                            <div class="mx-auto w-16 h-16 rounded-full bg-emerald-100 flex items-center justify-center mb-4">
+                                <i class="fas fa-check-circle text-emerald-600 text-2xl"></i>
+                            </div>
+                            <h3 class="text-xl font-semibold text-emerald-800 mb-2">Succès</h3>
+                            <p class="text-emerald-700 mb-6">{{ message }}</p>
+                            <button onclick="hideSuccessModal()" class="px-6 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors">
+                                Fermer
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
+    <!-- Password Reset Modal -->
+    <div id="passwordResetModal" class="hidden fixed inset-0 z-[9999] flex items-center justify-center">
+        <div class="absolute inset-0 bg-black/50 backdrop-blur-sm" onclick="hidePasswordResetModal()"></div>
+        <div class="relative bg-white p-6 rounded-xl border border-orange-200 max-w-md w-full mx-4 shadow-2xl">
+            <div class="text-center">
+                <div class="mx-auto w-16 h-16 rounded-full bg-orange-100 flex items-center justify-center mb-4">
+                    <i class="fas fa-key text-orange-500 text-2xl"></i>
+                </div>
+                <h3 class="text-xl font-semibold text-gray-800 mb-2">Réinitialisation du mot de passe</h3>
+                <p class="text-gray-600 mb-6" id="passwordResetMessage">Envoi de l'email de réinitialisation...</p>
+                <button onclick="hidePasswordResetModal()" class="px-6 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors">
+                    Fermer
+                </button>
+            </div>
+        </div>
+    </div>
+
     <script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
     <script>
-        // Theme Toggle
-        const themeToggle = document.getElementById('themeToggle');
-        const body = document.body;
-        const icon = themeToggle.querySelector('i');
+        // Firebase Configuration from environment variables
+        const firebaseConfig = {
+            apiKey: "{{ firebase_api_key }}",
+            authDomain: "{{ firebase_auth_domain }}",
+            databaseURL: "{{ firebase_database_url }}",
+            projectId: "{{ firebase_project_id }}",
+            storageBucket: "{{ firebase_storage_bucket }}",
+            messagingSenderId: "{{ firebase_messaging_sender_id }}",
+            appId: "{{ firebase_app_id }}",
+            measurementId: "{{ firebase_measurement_id }}"
+        };
         
-        // Load saved theme
-        const savedTheme = localStorage.getItem('theme') || 'dark';
-        if (savedTheme === 'light') {
-            body.classList.add('light-mode');
-            icon.classList.replace('fa-moon', 'fa-sun');
+        // Initialize Firebase
+        if (typeof firebase !== 'undefined') {
+            firebase.initializeApp(firebaseConfig);
+        }
+    </script>
+    <script>
+        // Check if theme toggle is enabled
+        fetch('/api/settings/theme-toggle')
+            .then(response => response.json())
+            .then(data => {
+                if (data.enabled) {
+                    document.getElementById('themeToggle').classList.remove('hidden');
+                    initThemeToggle();
+                } else {
+                    // Force light mode when toggle is disabled
+                    document.body.classList.add('light-mode');
+                    localStorage.setItem('theme', 'light');
+                }
+            })
+            .catch(() => {
+                // Fallback: show theme toggle if API fails
+                document.getElementById('themeToggle').classList.remove('hidden');
+                initThemeToggle();
+            });
+        
+        function initThemeToggle() {
+            const themeToggle = document.getElementById('themeToggle');
+            const body = document.body;
+            const icon = themeToggle.querySelector('i');
+            
+            // Theme already applied by blocking script, just ensure icon is correct
+            const savedTheme = localStorage.getItem('theme') || 'dark';
+            if (savedTheme === 'light' && !icon.classList.contains('fa-sun')) {
+                icon.classList.replace('fa-moon', 'fa-sun');
+            }
+            
+            themeToggle.addEventListener('click', () => {
+                body.classList.toggle('light-mode');
+                const isLight = body.classList.contains('light-mode');
+                
+                if (isLight) {
+                    icon.classList.replace('fa-moon', 'fa-sun');
+                    localStorage.setItem('theme', 'light');
+                } else {
+                    icon.classList.replace('fa-sun', 'fa-moon');
+                    localStorage.setItem('theme', 'dark');
+                }
+            });
         }
         
-        themeToggle.addEventListener('click', () => {
-            body.classList.toggle('light-mode');
-            const isLight = body.classList.contains('light-mode');
-            
-            if (isLight) {
-                icon.classList.replace('fa-moon', 'fa-sun');
-                localStorage.setItem('theme', 'light');
-            } else {
-                icon.classList.replace('fa-sun', 'fa-moon');
-                localStorage.setItem('theme', 'dark');
+        // Success Modal Functions
+        function hideSuccessModal() {
+            const modal = document.getElementById('successModal');
+            if (modal) {
+                modal.classList.add('animate-fade-out');
+                setTimeout(() => modal.remove(), 300);
             }
-        });
+        }
+        
+
+        
+        // Password Reset Modal Functions
+        function showPasswordResetModal() {
+            document.getElementById('passwordResetModal').classList.remove('hidden');
+        }
+        
+        function hidePasswordResetModal() {
+            document.getElementById('passwordResetModal').classList.add('hidden');
+        }
+        
+        function updatePasswordResetMessage(message) {
+            document.getElementById('passwordResetMessage').innerHTML = message;
+        }
+        
+        // Global Password Reset Function
+        function resetPasswordGlobal(email) {
+            showPasswordResetModal();
+            updatePasswordResetMessage('Envoi de l\'email de réinitialisation...');
+            
+            if (typeof firebase !== 'undefined' && firebase.auth) {
+                firebase.auth().sendPasswordResetEmail(email)
+                    .then(() => {
+                        updatePasswordResetMessage(`
+                            <p class="text-green-600 mb-2">✓ Email envoyé avec succès!</p>
+                            <p class="text-gray-600">L'utilisateur recevra un email à ${email}</p>
+                        `);
+                    })
+                    .catch((error) => {
+                        updatePasswordResetMessage(`<p class="text-red-600">Erreur: ${error.message}</p>`);
+                    });
+            } else {
+                updatePasswordResetMessage(`<p class="text-red-600">Firebase Client SDK non disponible</p>`);
+            }
+        }
+        
+        // MediBot Chat Functions
+        function toggleMedibot() {
+            const window = document.getElementById('medibotWindow');
+            window.classList.toggle('hidden');
+        }
+        
+        function sendMessage() {
+            const input = document.getElementById('chatInput');
+            const message = input.value.trim();
+            
+            if (!message) return;
+            
+            // Add user message to chat
+            addMessageToChat('user', message);
+            input.value = '';
+            
+            // Show typing indicator
+            addTypingIndicator();
+            
+            // Send to emergency chat backend
+            fetch('/api/chat/emergency', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ message: message })
+            })
+            .then(response => response.json())
+            .then(data => {
+                removeTypingIndicator();
+                
+                if (data.emergency_triggered) {
+                    addMessageToChat('bot', data.response, 'emergency');
+                    // Flash red alert indicator
+                    flashEmergencyAlert();
+                } else if (data.triage_level === 'urgent') {
+                    addMessageToChat('bot', data.response, 'urgent');
+                } else {
+                    addMessageToChat('bot', data.response);
+                }
+            })
+            .catch(error => {
+                removeTypingIndicator();
+                addMessageToChat('bot', 'Désolé, je rencontre des difficultés. Veuillez réessayer.');
+            });
+        }
+        
+        function addMessageToChat(sender, message, type = 'normal') {
+            const chatMessages = document.getElementById('chatMessages');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message-${sender}`;
+            
+            const senderLabel = document.createElement('div');
+            senderLabel.className = 'text-xs text-slate-500 mb-1';
+            senderLabel.textContent = sender === 'user' ? 'Vous' : 'MediBot';
+            
+            const messageContent = document.createElement('div');
+            messageContent.className = `rounded-lg p-3 text-sm ${
+                sender === 'user' 
+                    ? 'bg-cyan-500 text-white ml-auto max-w-xs' 
+                    : type === 'emergency'
+                        ? 'bg-red-600/30 border-2 border-red-500 text-red-100 animate-pulse'
+                        : type === 'urgent'
+                            ? 'bg-orange-500/20 border border-orange-500/30 text-orange-200'
+                            : 'bg-slate-800/50'
+            }`;
+            messageContent.textContent = message;
+            
+            messageDiv.appendChild(senderLabel);
+            messageDiv.appendChild(messageContent);
+            chatMessages.appendChild(messageDiv);
+            
+            // Scroll to bottom
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+        
+        function addTypingIndicator() {
+            const chatMessages = document.getElementById('chatMessages');
+            const typingDiv = document.createElement('div');
+            typingDiv.id = 'typing-indicator';
+            typingDiv.className = 'message-bot';
+            typingDiv.innerHTML = `
+                <div class="text-xs text-slate-500 mb-1">MediBot</div>
+                <div class="bg-slate-800/50 rounded-lg p-3 text-sm">
+                    <span class="animate-pulse">Analyse en cours...</span>
+                </div>
+            `;
+            chatMessages.appendChild(typingDiv);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+        
+        function removeTypingIndicator() {
+            const indicator = document.getElementById('typing-indicator');
+            if (indicator) indicator.remove();
+        }
+        
+        function flashEmergencyAlert() {
+            // Flash the MediBot FAB red for emergency
+            const fab = document.getElementById('medibotFab');
+            const originalClass = fab.className;
+            
+            fab.className = fab.className.replace('from-cyan-500 to-blue-600', 'from-red-500 to-red-700');
+            
+            // Flash effect
+            let flashCount = 0;
+            const flashInterval = setInterval(() => {
+                fab.style.opacity = fab.style.opacity === '0.5' ? '1' : '0.5';
+                flashCount++;
+                
+                if (flashCount >= 6) {
+                    clearInterval(flashInterval);
+                    fab.style.opacity = '1';
+                    // Keep red color for 10 seconds
+                    setTimeout(() => {
+                        fab.className = originalClass;
+                    }, 10000);
+                }
+            }, 300);
+        }
     </script>
+    
+    <style>
+        .animate-fade-in {
+            animation: fadeIn 0.3s ease-out;
+        }
+        .animate-fade-out {
+            animation: fadeOut 0.3s ease-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: scale(0.9); }
+            to { opacity: 1; transform: scale(1); }
+        }
+        @keyframes fadeOut {
+            from { opacity: 1; transform: scale(1); }
+            to { opacity: 0; transform: scale(0.9); }
+        }
+    </style>
+    
     {% block scripts %}{% endblock %}
 </body>
 </html>

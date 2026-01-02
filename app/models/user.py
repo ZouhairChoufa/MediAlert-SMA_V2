@@ -1,14 +1,16 @@
 from werkzeug.security import generate_password_hash, check_password_hash
 from datetime import datetime
 from app.services.firebase_service import FirebaseService
+from firebase_admin import auth
 
 class User:
-    def __init__(self, username, email, password_hash, role='user', created_at=None):
+    def __init__(self, username, email, password_hash, role='user', created_at=None, firebase_uid=None):
         self.username = username
         self.email = email
         self.password_hash = password_hash
         self.role = role
         self.created_at = created_at or datetime.utcnow().isoformat()
+        self.firebase_uid = firebase_uid
     
     def check_password(self, password):
         return check_password_hash(self.password_hash, password)
@@ -19,7 +21,8 @@ class User:
             'email': self.email,
             'password_hash': self.password_hash,
             'role': self.role,
-            'created_at': self.created_at
+            'created_at': self.created_at,
+            'firebase_uid': self.firebase_uid
         }
     
     @staticmethod
@@ -29,7 +32,8 @@ class User:
             email=data['email'],
             password_hash=data['password_hash'],
             role=data.get('role', 'user'),
-            created_at=data.get('created_at')
+            created_at=data.get('created_at'),
+            firebase_uid=data.get('firebase_uid')
         )
 
 class UserStore:
@@ -38,13 +42,29 @@ class UserStore:
         self.collection = self.firebase.get_collection('users')
     
     def create_user(self, username, email, password, role='user'):
-        if self.collection.document(username).get().exists:
+        try:
+            # Step 1: Create user in Firebase Auth
+            user_record = auth.create_user(
+                email=email,
+                password=password,
+                display_name=username
+            )
+            firebase_uid = user_record.uid
+            
+            # Step 2: Create user in Firestore using Firebase UID
+            password_hash = generate_password_hash(password)
+            user = User(username, email, password_hash, role)
+            user_data = user.to_dict()
+            user_data['firebase_uid'] = firebase_uid
+            
+            self.collection.document(username).set(user_data)
+            return user
+            
+        except auth.EmailAlreadyExistsError:
             return None
-        
-        password_hash = generate_password_hash(password)
-        user = User(username, email, password_hash, role)
-        self.collection.document(username).set(user.to_dict())
-        return user
+        except Exception as e:
+            print(f'Error creating user: {e}')
+            return None
     
     def get_user(self, username):
         doc = self.collection.document(username).get()
