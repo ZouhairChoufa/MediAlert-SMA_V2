@@ -8,6 +8,13 @@
         transition: transform 1.0s linear, opacity 1.0s linear;
         will-change: transform;
     }
+    .ambulance-icon {
+        background: transparent !important;
+        border: none !important;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
 </style>
 {% endblock %}
 
@@ -49,7 +56,7 @@
                 <i class="fas fa-terminal mr-2"></i>Console Agents
             </h3>
             <div id="activity-log" class="space-y-1 text-xs mono text-slate-400 max-h-96 overflow-y-auto terminal bg-slate-950/50 p-3 rounded-lg">
-                <div class="log-line text-green-400">[SYSTEM] Initialisation...</div>
+                <div class="log-line text-green-400">[SYSTÈME] Initialisation...</div>
             </div>
         </div>
     </div>
@@ -90,7 +97,7 @@
             <div id="routeInfo" class="space-y-4">
                 <div class="flex flex-col border-l-2 border-red-500 pl-3 py-1">
                     <div class="flex justify-between items-center mb-1">
-                        <span class="text-xs text-slate-400">🚑 <span id="amb-name-display">Ambulance</span> ➝ Patient</span>
+                        <span class="text-xs text-slate-400"><i class="fas fa-ambulance mr-1"></i> <span id="amb-name-display">Ambulance</span> ➝ <i class="fas fa-user mr-1"></i> Patient</span>
                     </div>
                     <div class="flex justify-between items-end">
                         <span class="mono text-lg font-bold text-white" id="dist_amb_pat">-- km</span>
@@ -100,7 +107,7 @@
 
                 <div class="flex flex-col border-l-2 border-blue-500 pl-3 py-1">
                     <div class="flex justify-between items-center mb-1">
-                        <span class="text-xs text-slate-400">👤 Patient ➝ 🏥 Hôpital</span>
+                        <span class="text-xs text-slate-400"><i class="fas fa-user mr-1"></i> Patient ➝ <i class="fas fa-hospital mr-2"></i> Hôpital</span>
                     </div>
                     <div class="flex justify-between items-end">
                         <span class="mono text-lg font-bold text-white" id="dist_pat_hosp">-- km</span>

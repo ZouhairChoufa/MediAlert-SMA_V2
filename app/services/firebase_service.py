@@ -20,3 +20,12 @@ class FirebaseService:
     
     def get_collection(self, collection_name):
         return self.db.collection(collection_name)
+    
+    def delete_alert(self, alert_id):
+        """Delete an alert document from Firestore"""
+        try:
+            self.db.collection('alerts').document(alert_id).delete()
+            return True
+        except Exception as e:
+            print(f"Error deleting alert {alert_id}: {e}")
+            return False

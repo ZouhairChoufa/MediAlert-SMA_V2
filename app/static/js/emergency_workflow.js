@@ -12,14 +12,27 @@ class EmergencyWorkflowManager {
         this.hospitalMarker = null;
         this.hasZoomed = false;
         
-        // Icône Ambulance
-        this.ambulanceIcon = L.icon({
-            iconUrl: 'https://cdn-icons-png.flaticon.com/512/2636/2636280.png',
-            iconSize: [50, 50],
-            iconAnchor: [25, 25],
-            popupAnchor: [0, -25],
-            className: 'smooth-marker-transition' 
-        });
+        // Animation properties
+        this.animationFrame = null;
+        this.isAnimating = false;
+        this.currentPosition = null;
+        this.targetPosition = null;
+        this.animationStartTime = null;
+        this.animationDuration = 3000; // 3 seconds for smooth movement
+        this.currentRouteColor = '#ef4444'; // Default red for phase 1
+        
+        // Dynamic ambulance icon based on route phase
+        this.createAmbulanceIcon = (color = '#ef4444') => {
+            return L.divIcon({
+                html: `<i class="fas fa-ambulance" style="color: ${color}; font-size: 24px;"></i>`,
+                iconSize: [32, 32],
+                iconAnchor: [16, 16],
+                popupAnchor: [0, -16],
+                className: 'ambulance-icon'
+            });
+        };
+
+        this.ambulanceIcon = this.createAmbulanceIcon();
 
         console.log("🚀 [Manager] Démarrage...");
     }
@@ -31,6 +44,7 @@ class EmergencyWorkflowManager {
 
     stopPolling() {
         if (this.pollingInterval) clearInterval(this.pollingInterval);
+        if (this.animationFrame) cancelAnimationFrame(this.animationFrame);
     }
 
     async fetchStatus() {
@@ -60,22 +74,21 @@ class EmergencyWorkflowManager {
             this.drawHospital(selected_hospital);
         }
 
-        // 2. ROUTES
+        // 2. ROUTES - Update ambulance color based on active route
         if (route_active === 'RED' && route_red) {
             this.drawRoute(route_red, '#ef4444');
+            this.currentRouteColor = '#ef4444'; // Red for phase 1
         } else if (route_active === 'BLUE' && route_blue) {
             this.drawRoute(route_blue, '#3b82f6');
+            this.currentRouteColor = '#3b82f6'; // Blue for phase 2
         }
 
-        // 3. AMBULANCE
+        // 3. AMBULANCE - SMOOTH ANIMATION
         if (ambulance) {
-            this.updateAmbulance(ambulance, status);
+            this.updateAmbulanceSmooth(ambulance, status);
         }
 
-        // 4. PROTOCOLE
-        if (medical_protocol) {
-            this.showProtocol(medical_protocol);
-        }
+        // 4. PROTOCOLE - REMOVED (no more toast notification)
     }
 
     // ... (Les fonctions drawHospital, drawRoute, updateAmbulance restent identiques à la version précédente) ...
@@ -94,7 +107,7 @@ class EmergencyWorkflowManager {
              iconSize: [35, 35], iconAnchor: [17, 17]
         });
         this.hospitalMarker = L.marker([lat, lng], {icon: hospIcon})
-            .addTo(this.map).bindPopup(`<b>🏥 ${hospital.name}</b>`).openPopup();
+            .addTo(this.map).bindPopup(`<b><i class="fas fa-hospital mr-1"></i> ${hospital.name}</b>`).openPopup();
     }
 
     drawRoute(rawGeometry, color) {
@@ -119,19 +132,70 @@ class EmergencyWorkflowManager {
         } catch (e) { console.error("Erreur Route:", e); }
     }
 
-    updateAmbulance(amb, status) {
+    updateAmbulanceSmooth(amb, status) {
         let lat = parseFloat(amb.current_lat), lng = parseFloat(amb.current_lng);
         if (lat < 0 && lng > 0) { let t = lat; lat = lng; lng = t; }
         if (isNaN(lat)) return;
-        const pos = [lat, lng];
-        let text = "<b>🚑 Ambulance SMUR</b>";
         
-        if (this.ambulanceMarker) {
-            this.ambulanceMarker.setLatLng(pos);
-        } else {
-            this.ambulanceMarker = L.marker(pos, {
-                icon: this.ambulanceIcon, zIndexOffset: 1000
+        const newPos = [lat, lng];
+        const text = "<b><i class=\"fas fa-ambulance mr-1\"></i> Ambulance SMUR</b>";
+        
+        if (!this.ambulanceMarker) {
+            // Create marker for first time with current route color
+            this.ambulanceIcon = this.createAmbulanceIcon(this.currentRouteColor);
+            this.ambulanceMarker = L.marker(newPos, {
+                icon: this.ambulanceIcon, 
+                zIndexOffset: 1000
             }).addTo(this.map).bindPopup(text);
+            this.currentPosition = { lat: newPos[0], lng: newPos[1] };
+        } else {
+            // Update icon color if route changed
+            const newIcon = this.createAmbulanceIcon(this.currentRouteColor);
+            this.ambulanceMarker.setIcon(newIcon);
+            
+            // Animate to new position
+            this.animateToPosition(newPos);
+        }
+    }
+
+    animateToPosition(targetPos) {
+        if (this.isAnimating) {
+            // Update target if already animating
+            this.targetPosition = targetPos;
+            return;
+        }
+        
+        this.targetPosition = targetPos;
+        this.animationStartTime = performance.now();
+        this.isAnimating = true;
+        
+        this.animate();
+    }
+
+    animate() {
+        const now = performance.now();
+        const elapsed = now - this.animationStartTime;
+        const progress = Math.min(elapsed / this.animationDuration, 1);
+        
+        // Smooth easing function (ease-in-out)
+        const easeProgress = progress < 0.5 
+            ? 2 * progress * progress 
+            : 1 - Math.pow(-2 * progress + 2, 2) / 2;
+        
+        // Linear interpolation (LERP)
+        const currentLat = this.currentPosition.lat + 
+            (this.targetPosition[0] - this.currentPosition.lat) * easeProgress;
+        const currentLng = this.currentPosition.lng + 
+            (this.targetPosition[1] - this.currentPosition.lng) * easeProgress;
+        
+        // Update marker position
+        this.ambulanceMarker.setLatLng([currentLat, currentLng]);
+        
+        if (progress < 1) {
+            this.animationFrame = requestAnimationFrame(() => this.animate());
+        } else {
+            this.isAnimating = false;
+            this.currentPosition = { lat: this.targetPosition[0], lng: this.targetPosition[1] };
         }
     }
 
@@ -192,21 +256,7 @@ class EmergencyWorkflowManager {
         }
     }
 
-    showProtocol(proto) {
-        if (document.getElementById('ai-proto')) return;
-        const div = document.createElement('div');
-        div.id = 'ai-proto';
-        div.className = 'fixed bottom-4 right-4 bg-slate-900 border border-purple-500 text-white p-4 rounded shadow-xl max-w-md z-[2000] animate-bounce-in';
-        div.innerHTML = `
-            <h3 class="font-bold text-purple-400 mb-2">🧠 IA PROTOCOLE</h3>
-            <div class="text-sm">
-                <p class="mb-2"><strong class="text-purple-300">Action:</strong> ${proto.protocole_transport}</p>
-                <p><strong class="text-blue-300">Meds:</strong> ${(proto.medicaments_a_preparer||[]).join(', ')}</p>
-            </div>
-            <button onclick="this.parentElement.remove()" class="absolute top-1 right-2 text-gray-500">x</button>
-        `;
-        document.body.appendChild(div);
-    }
+    // REMOVED: showProtocol function - no more Action/Meds toast notification
 }
 
 document.addEventListener('DOMContentLoaded', () => {

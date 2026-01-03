@@ -1,17 +1,17 @@
 {% extends "base.html" %}
 
-{% block title %}MediAlert SMA - Command Center{% endblock %}
+{% block title %}MediAlert SMA - Centre de Commande{% endblock %}
 
 {% block content %}
 <!-- Hero Header -->
 <div class="hero-header mb-8">
     <div class="flex items-center justify-between">
         <div>
-            <h1 class="text-4xl font-bold mb-2 hero-title">MediAlert SMA Command Center</h1>
-            <p class="text-lg hero-description">Real-time AI orchestration system for emergency response. Tracking available hospitals and active units across the territory.</p>
+            <h1 class="text-4xl font-bold mb-2 hero-title">Centre de Commande MediAlert SMA</h1>
+            <p class="text-lg hero-description">Système d'orchestration IA en temps réel pour la réponse d'urgence. Suivi des hôpitaux disponibles et des unités actives sur le territoire.</p>
         </div>
         <div class="glass-panel px-8 py-4">
-            <div class="text-sm hero-stat-label">Hospitals Monitored</div>
+            <div class="text-sm hero-stat-label">Hôpitaux Surveillés</div>
             <div class="text-4xl font-bold mono hero-stat-value" id="hospitalCount">--</div>
         </div>
     </div>
@@ -19,27 +19,27 @@
 
 <!-- Process Timeline -->
 <div class="glass-panel p-8 mb-8">
-    <h2 class="text-xl font-semibold mb-6 timeline-title">Emergency Response Process</h2>
+    <h2 class="text-xl font-semibold mb-6 timeline-title">Processus de Réponse d'Urgence</h2>
     <div class="process-timeline">
         <div class="timeline-step active" data-step="1">
             <div class="timeline-icon">
                 <i class="fas fa-tower-broadcast"></i>
             </div>
-            <div class="timeline-label">Alert Sent</div>
+            <div class="timeline-label">Alerte Envoyée</div>
         </div>
         <div class="timeline-connector"></div>
         <div class="timeline-step" data-step="2">
             <div class="timeline-icon">
                 <i class="fas fa-brain"></i>
             </div>
-            <div class="timeline-label">AI Triage</div>
+            <div class="timeline-label">Triage IA</div>
         </div>
         <div class="timeline-connector"></div>
         <div class="timeline-step" data-step="3">
             <div class="timeline-icon">
                 <i class="fas fa-network-wired"></i>
             </div>
-            <div class="timeline-label">Coordinator</div>
+            <div class="timeline-label">Coordinateur</div>
         </div>
         <div class="timeline-connector"></div>
         <div class="timeline-step" data-step="4">
@@ -53,7 +53,7 @@
             <div class="timeline-icon">
                 <i class="fas fa-hospital-user"></i>
             </div>
-            <div class="timeline-label">Hospital</div>
+            <div class="timeline-label">Hôpital</div>
         </div>
     </div>
 </div>

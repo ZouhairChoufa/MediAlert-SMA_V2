@@ -46,7 +46,7 @@ def alert_form():
         
         initial_data = {
             'patient': form_data,
-            'status': 'En cours',
+            'status': 'En attente',
             'username': session.get('user'),
             'created_at': datetime.utcnow().isoformat()
         }
@@ -76,7 +76,7 @@ def alert_form():
             
             # 6. Prepare Update Dict
             updates = {
-                'status': 'Traitée',
+                'status': 'Terminé',
                 'hospital_name': output_data.get('hospital_name'),
                 'distance_km': output_data.get('distance'),
                 'eta_minutes': output_data.get('eta'),
@@ -118,3 +118,14 @@ def tracking(alert_id):
                              alert_id=alert_id,
                              patient=alert_data.get('patient', {}))
     return redirect(url_for('web.dashboard'))
+
+@web_bp.route('/delete_alert/<alert_id>', methods=['POST'])
+@login_required
+def delete_alert(alert_id):
+    """Delete an alert from the database"""
+    firebase = FirebaseService()
+    if firebase.delete_alert(alert_id):
+        flash('Alerte supprimée avec succès', 'success')
+    else:
+        flash('Erreur lors de la suppression', 'error')
+    return redirect(url_for('patient.profile'))

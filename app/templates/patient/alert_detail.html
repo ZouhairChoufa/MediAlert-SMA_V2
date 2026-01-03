@@ -1,164 +1,342 @@
 {% extends "base.html" %}
 
-{% block title %}Détails Alerte - MediAlert SMA{% endblock %}
-{% block header %}DÉTAILS DE L'ALERTE{% endblock %}
+{% block title %}Détail Alerte - MediAlert{% endblock %}
+{% block header %}DÉTAIL DE L'INTERVENTION{% endblock %}
 
 {% block content %}
-<div class="max-w-6xl mx-auto space-y-6">
-    <!-- Back Button -->
-    <a href="{{ url_for('patient.profile') }}" class="inline-flex items-center text-cyan-400 hover:text-cyan-300">
-        <i class="fas fa-arrow-left mr-2"></i>Retour au profil
-    </a>
-
-    <!-- Alert Overview -->
-    <div class="glass-panel p-8">
-        <div class="flex items-center justify-between mb-6">
-            <div>
-                <h2 class="text-2xl font-bold text-white mb-2">Alerte #{{ alert.alert_id }}</h2>
-                <p class="text-slate-400">{{ alert.date }}</p>
-            </div>
-            <span class="px-4 py-2 rounded-full text-sm font-semibold
-                {% if alert.urgency_level == 'CRITIQUE' %}bg-red-500/20 text-red-400
-                {% elif alert.urgency_level == 'URGENT' %}bg-orange-500/20 text-orange-400
-                {% else %}bg-yellow-500/20 text-yellow-400{% endif %}">
-                {{ alert.urgency_level or 'MOYEN' }}
-            </span>
-        </div>
-
-        <div class="grid grid-cols-2 gap-6">
-            <div>
-                <label class="text-sm text-slate-400">Symptômes</label>
-                <p class="text-white">{{ alert.symptomes }}</p>
-            </div>
-            <div>
-                <label class="text-sm text-slate-400">Localisation</label>
-                <p class="text-white">{{ alert.localisation }}</p>
-            </div>
-        </div>
+<div class="max-w-7xl mx-auto space-y-6 pb-12">
+    
+    <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+        <a href="{{ url_for('patient.profile') }}" class="inline-flex items-center text-cyan-600 dark:text-cyan-400 hover:text-cyan-500 transition-colors">
+            <i class="fas fa-arrow-left mr-2"></i>Retour au profil
+        </a>
     </div>
 
-    <!-- Hospital Information -->
-    <div class="glass-panel p-8">
-        <h3 class="text-xl font-bold text-white mb-6">
-            <i class="fas fa-hospital text-cyan-400 mr-2"></i>Hôpital
-        </h3>
-        <div class="grid grid-cols-2 gap-6">
-            <div>
-                <label class="text-sm text-slate-400">Nom de l'hôpital</label>
-                <p class="text-white font-medium">{{ alert.hospital_name }}</p>
+    <div class="glass-panel p-6 flex flex-col md:flex-row justify-between items-center gap-6">
+        <div>
+            <div class="flex items-center gap-3 mb-2">
+                <h2 class="text-3xl font-bold text-slate-800 dark:text-white">
+                    {% if alert.id %}
+                        Alerte ID : {{ alert.id }}
+                    {% else %}
+                        Alerte
+                    {% endif %}
+                </h2>                
+                <span class="px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider border
+                    {% if alert.status == 'RESOLVED' or alert.status == 'Terminé' %} 
+                        bg-green-100 text-green-700 border-green-200 dark:bg-green-500/20 dark:text-green-400 dark:border-green-500/30
+                    {% elif alert.status == 'IN_PROGRESS' or alert.status == 'En cours' %} 
+                        bg-orange-100 text-orange-700 border-orange-200 dark:bg-orange-500/20 dark:text-orange-400 dark:border-orange-500/30
+                    {% else %} 
+                        bg-red-100 text-red-700 border-red-200 dark:bg-red-500/20 dark:text-red-400 dark:border-red-500/30 
+                    {% endif %}">
+                    {{ alert.status }}
+                </span>
             </div>
-            <div>
-                <label class="text-sm text-slate-400">Service</label>
-                <p class="text-white">{{ alert.hospital_service or 'Urgences' }}</p>
-            </div>
-            <div>
-                <label class="text-sm text-slate-400">Distance</label>
-                <p class="text-white">{{ alert.distance_km }} km</p>
-            </div>
-            <div>
-                <label class="text-sm text-slate-400">Temps d'arrivée</label>
-                <p class="text-white">{{ alert.eta_minutes }} minutes</p>
-            </div>
-            <div>
-                <label class="text-sm text-slate-400">Numéro de lit</label>
-                <p class="text-white">{{ alert.bed_number or 'Non assigné' }}</p>
-            </div>
+            <p class="text-slate-500 dark:text-slate-400 flex items-center gap-2">
+                <i class="far fa-clock"></i> 
+                {{ alert.created_at | replace('T', ' ') | truncate(16, True, '') }}
+            </p>
         </div>
+
+        <form method="POST" action="{{ url_for('web.delete_alert', alert_id=alert.id) }}" id="deleteFormDetail">
+            <button type="button" 
+                    onclick="confirmDelete(event, 'deleteFormDetail')"
+                    class="px-5 py-2.5 bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 dark:bg-red-500/10 dark:hover:bg-red-500/20 dark:text-red-500 dark:border-red-500/30 rounded-lg transition-all flex items-center gap-2 font-medium">
+                <i class="fas fa-trash"></i>
+                <span>Supprimer l'alerte</span>
+            </button>
+        </form>
     </div>
 
-    <!-- Medical Team -->
-    <div class="glass-panel p-8">
-        <h3 class="text-xl font-bold text-white mb-6">
-            <i class="fas fa-user-md text-cyan-400 mr-2"></i>Équipe médicale
-        </h3>
-        
-        {% if alert.doctors %}
-        <div class="grid grid-cols-2 gap-4">
-            {% for doctor in alert.doctors %}
-            <div class="p-4 bg-slate-800/50 rounded-lg border border-cyan-500/20">
-                <div class="flex items-center space-x-3">
-                    <div class="w-12 h-12 rounded-full bg-cyan-500/20 flex items-center justify-center">
-                        <i class="fas fa-user-md text-cyan-400"></i>
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div class="space-y-6 lg:col-span-1">
+            
+            <div class="glass-panel p-6">
+                <h3 class="text-lg font-bold text-slate-800 dark:text-white mb-4 flex items-center gap-2">
+                    <i class="fas fa-user-injured text-cyan-600 dark:text-cyan-500"></i> Information Patient
+                </h3>
+                
+                <div class="flex items-center gap-5 mb-4">
+                    <div class="w-16 h-16 rounded-full bg-cyan-50 border border-cyan-100 text-cyan-700 dark:bg-cyan-500/10 dark:border-cyan-500/20 dark:text-cyan-400 flex items-center justify-center shrink-0">
+                        <span class="text-3xl font-bold uppercase">
+                            {{ alert.patient.nom_prenom[0] if alert.patient.nom_prenom else '?' }}
+                        </span>
                     </div>
+                    
                     <div>
-                        <p class="text-white font-medium">{{ doctor.name }}</p>
-                        <p class="text-sm text-slate-400">{{ doctor.specialty }}</p>
+                        <p class="text-slate-900 dark:text-white font-bold text-xl leading-tight capitalize">
+                            {{ alert.patient.nom_prenom }}
+                        </p>
+                        <p class="text-slate-500 dark:text-slate-400 text-sm mt-1 font-medium">
+                            {{ alert.patient.age }} ans • {{ alert.patient.sexe }}
+                        </p>
+                    </div>
+                </div>
+                
+                <div class="p-4 bg-red-50 border border-red-100 dark:bg-red-500/10 dark:border-red-500/20 rounded-xl transition-colors">
+                    <p class="text-xs text-red-600 dark:text-red-300 uppercase font-bold mb-1 tracking-wide">Symptômes signalés</p>
+                    <p class="text-slate-800 dark:text-slate-200 font-medium leading-relaxed">
+                        {{ alert.patient.symptomes }}
+                    </p>
+                </div>
+            </div>
+
+            <div class="glass-panel p-6"> 
+                <h3 class="text-lg font-bold text-slate-800 dark:text-white mb-4 flex items-center gap-2">
+                    <i class="fas fa-map-marker-alt text-cyan-600 dark:text-cyan-500"></i> Localisation
+                </h3>
+                <div class="flex flex-col gap-4">
+                    <div class="text-xs text-red-600 dark:text-red-300 uppercase font-bold mb-1 tracking-wide ">
+                    <p class="text-slate-800 dark:text-slate-200 font-bold leading-relaxed gap-3 p-3 
+                            rounded-lg border transition-all shadow-sm bg-white border-cyan-200 dark:bg-slate-800/5 p-2 rounded-lg">
+                        {{ alert.patient.localisation }}
+                    </p>
+                </div>
+                    
+                    <a href="https://www.google.com/maps/search/?api=1&query={{ alert.patient.gps_coords.lat }},{{ alert.patient.gps_coords.lng }}" 
+                        target="_blank"
+                        class="block relative w-full h-80 rounded-xl overflow-hidden border border-slate-200 dark:border-slate-700 shadow-sm group hover:ring-2 hover:ring-cyan-500 transition-all cursor-pointer">
+                        
+                        <div class="absolute inset-0 bg-slate-100 dark:bg-slate-900 flex items-center justify-center">
+                            <img src="https://maps.googleapis.com/maps/api/staticmap?center={{ alert.patient.gps_coords.lat }},{{ alert.patient.gps_coords.lng }}&zoom=15&size=600x400&maptype=roadmap&markers=color:red%7C{{ alert.patient.gps_coords.lat }},{{ alert.patient.gps_coords.lng }}&key=VOTRE_API_KEY" 
+                                class="w-full h-full object-cover opacity-90 group-hover:opacity-100 transition-opacity"
+                                onerror="this.style.display='none'" 
+                                alt="Carte">
+                            
+                            <div class="absolute inset-0 opacity-10" 
+                                style="background-image: url('https://www.transparenttextures.com/patterns/map.png');">
+                            </div>
+                        </div>
+                        
+                        <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 pb-8">
+                            <i class="fas fa-map-marker-alt text-4xl text-red-500 drop-shadow-md animate-bounce"></i>
+                            <div class="w-4 h-1 bg-black/20 rounded-full mx-auto mt-[-5px] blur-[1px]"></div>
+                        </div>
+                        
+                        <div class="absolute inset-0 bg-black/0 group-hover:bg-black/10 dark:group-hover:bg-white/5 transition-colors flex items-center justify-center">
+                            <span class="opacity-0 group-hover:opacity-100 bg-white text-slate-800 px-4 py-2 rounded-full shadow-lg font-bold text-sm transform scale-90 group-hover:scale-100 transition-all">
+                                <i class="fas fa-external-link-alt mr-2"></i>Ouvrir Maps
+                            </span>
+                        </div>
+
+                        <div class="absolute bottom-3 left-3 right-3">
+                            <div class="bg-white/90 dark:bg-slate-900/90 backdrop-blur-md px-4 py-3 rounded-lg border border-slate-200 dark:border-slate-700 shadow-sm flex justify-between items-center">
+                                <div class="flex items-center gap-2">
+                                    <div class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
+                                    <span class="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">GPS LIVE</span>
+                                </div>
+                                <span class="text-sm font-mono text-slate-900 dark:text-white font-bold">
+                                    {{ alert.patient.gps_coords.lat | round(4) }}, {{ alert.patient.gps_coords.lng | round(4) }}
+                                </span>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div class="space-y-6 lg:col-span-2">
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="glass-panel p-6 relative overflow-hidden group">
+                    <div class="absolute top-0 right-0 p-4 opacity-5 dark:opacity-10 group-hover:opacity-10 dark:group-hover:opacity-20 transition-opacity">
+                        <i class="fas fa-hospital text-8xl text-slate-900 dark:text-white"></i>
+                    </div>
+                    <h3 class="text-sm font-bold text-slate-500 dark:text-slate-400 uppercase mb-3 flex items-center gap-2">
+                        <i class="fas fa-hospital text-green-600 dark:text-green-400"></i> Destination
+                    </h3>
+                    <p class="text-slate-900 dark:text-white font-bold text-xl mb-1 truncate">{{ alert.selected_hospital.name }}</p>
+                    <p class="text-green-600 dark:text-green-400 text-sm font-medium mb-4">{{ alert.selected_hospital.service or 'Urgences' }}</p>
+                    <div class="flex gap-4 pt-4 border-t border-slate-200 dark:border-slate-700/50">
+                        <div>
+                            <p class="text-slate-500 text-xs uppercase">Distance</p>
+                            <p class="text-slate-800 dark:text-white font-mono">{{ alert.selected_hospital.distance_km }} km</p>
+                        </div>
+                        <div>
+                            <p class="text-slate-500 text-xs uppercase">Arrivée (ETA)</p>
+                            <p class="text-slate-800 dark:text-white font-mono">{{ alert.selected_hospital.eta_minutes }} min</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="glass-panel p-6 relative overflow-hidden group">
+                    <div class="absolute top-0 right-0 p-4 opacity-5 dark:opacity-10 group-hover:opacity-10 dark:group-hover:opacity-20 transition-opacity">
+                        <i class="fas fa-ambulance text-8xl text-slate-900 dark:text-white"></i>
+                    </div>
+                    <h3 class="text-sm font-bold text-slate-500 dark:text-slate-400 uppercase mb-3 flex items-center gap-2">
+                        <i class="fas fa-ambulance text-blue-600 dark:text-blue-400"></i> Unité Mobile
+                    </h3>
+                    <p class="text-slate-900 dark:text-white font-bold text-xl mb-1 truncate">{{ alert.ambulance.name }}</p>
+                    <p class="text-blue-600 dark:text-blue-400 text-sm font-medium mb-4">{{ alert.ambulance.type }}</p>
+                    <div class="flex gap-4 pt-4 border-t border-slate-200 dark:border-slate-700/50">
+                        <div>
+                            <p class="text-slate-500 text-xs uppercase">ID</p>
+                            <p class="text-slate-800 dark:text-white font-mono">{{ alert.ambulance.id }}</p>
+                        </div>
+                        <div>
+                            <p class="text-slate-500 text-xs uppercase">Base</p>
+                            <p class="text-slate-800 dark:text-white font-mono truncate max-w-[100px]">{{ alert.ambulance.base }}</p>
+                        </div>
                     </div>
                 </div>
             </div>
-            {% endfor %}
-        </div>
-        {% else %}
-        <p class="text-slate-400">Aucun médecin assigné</p>
-        {% endif %}
-    </div>
 
-    <!-- Treatment Protocol -->
-    <div class="glass-panel p-8">
-        <h3 class="text-xl font-bold text-white mb-6">
-            <i class="fas fa-notes-medical text-cyan-400 mr-2"></i>Protocole de traitement
-        </h3>
-        
-        {% if alert.treatment_protocol %}
-        <div class="space-y-4">
-            <div>
-                <label class="text-sm text-slate-400">Diagnostic</label>
-                <p class="text-white">{{ alert.treatment_protocol.diagnostic }}</p>
+            <div class="glass-panel p-6">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <div>
+                        <h3 class="text-lg font-bold text-slate-800 dark:text-white mb-4 flex items-center gap-2">
+                            <i class="fas fa-user-md text-cyan-600 dark:text-cyan-400"></i> Équipe Médicale
+                        </h3>
+                        {% if alert.medical_team %}
+                        <div class="space-y-3">
+                            {% for member in alert.medical_team %}
+                            <div class="flex items-center gap-3 p-3 rounded-lg border transition-all shadow-sm bg-white border-cyan-300
+                                        dark:bg-slate-800/5 dark:border-cyan-500/20 dark:hover:bg-slate-800/50 dark:hover:border-cyan-400/30">
+                                
+                                <div class="w-10 h-10 rounded-full flex items-center justify-center border shrink-0 bg-cyan-50 text-cyan-700 border-cyan-100 dark:bg-cyan-900/20 dark:text-cyan-400 dark:border-slate-600/50">
+                                    <i class="fas {% if 'Dr' in member.name %}fa-user-md{% else %}fa-user-nurse{% endif %}"></i>
+                                </div>
+                                
+                                <div>
+                                    <p class="text-slate-900 font-bold text-sm leading-tight dark:text-white font-bold text-sm leading-tight">
+                                        {{ member.name }}
+                                    </p>
+                                    <p class="text-slate-600 text-xs font-medium dark:text-slate-400 text-xs font-medium">
+                                        {{ member.specialty }}
+                                    </p>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                        {% else %}
+                        <div class="p-4 rounded-lg border border-dashed bg-slate-50 border-cyan-200">
+                            <p class="text-slate-800 text-sm italic text-center">
+                                <i class="far fa-user-slash mr-2"></i>Aucune équipe assignée.
+                            </p>
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <div>
+                        <h3 class="text-lg font-bold text-slate-800 dark:text-white mb-4 flex items-center gap-2">
+                            <i class="fas fa-notes-medical text-purple-600 dark:text-purple-400"></i> Protocole
+                        </h3>
+                        {% if alert.medical_protocol %}
+                        <div class="space-y-4">
+                            <div>
+                                <label class="text-xs text-slate-500 uppercase font-bold">Diagnostic Suspecté</label>
+                                <p class="text-slate-800 dark:text-white font-medium mt-1">{{ alert.medical_protocol.diagnostic_suspecte }}</p>
+                            </div>
+                            
+                            <div>
+                                <label class="text-xs text-slate-500 uppercase font-bold block mb-2">Médicaments</label>
+                                <div class="flex flex-wrap gap-2">
+                                    {% for med in alert.medical_protocol.medicaments_a_preparer %}
+                                    <span class="px-2.5 py-1 text-xs rounded-md border 
+                                                 bg-purple-50 text-purple-700 border-purple-100
+                                                 dark:bg-purple-500/10 dark:text-purple-300 dark:border-purple-500/20">
+                                        {{ med }}
+                                    </span>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                            
+                            <div>
+                                <label class="text-xs text-slate-500 uppercase font-bold">Transport</label>
+                                <p class="text-slate-600 dark:text-slate-300 text-sm mt-1 italic">"{{ alert.medical_protocol.protocole_transport }}"</p>
+                            </div>
+                        </div>
+                        {% else %}
+                            <p class="text-slate-500 text-sm italic">Aucun protocole disponible.</p>
+                        {% endif %}
+                    </div>
+                </div>
             </div>
-            
-            {% if alert.treatment_protocol.medications %}
-            <div>
-                <label class="text-sm text-slate-400 mb-2 block">Médicaments administrés</label>
-                <div class="flex flex-wrap gap-2">
-                    {% for med in alert.treatment_protocol.medications %}
-                    <span class="px-3 py-1 bg-cyan-500/20 text-cyan-400 rounded-full text-sm">{{ med }}</span>
+
+            <div class="glass-panel p-6">
+                <h3 class="text-lg font-bold text-slate-800 dark:text-white mb-6 flex items-center gap-2">
+                    <i class="fas fa-history text-cyan-600 dark:text-cyan-400"></i> Journal d'intervention (Logs)
+                </h3>
+                
+                {% if alert.logs %}
+                <div class="relative pl-6 border-l-2 border-slate-200 dark:border-slate-700 space-y-6">
+                    {% for log in alert.logs %}
+                    <div class="relative group">
+                        <div class="absolute -left-[31px] top-1.5 w-4 h-4 rounded-full border-2 border-white dark:border-slate-900 transition-colors duration-300
+                            {% if loop.last %}bg-green-500 shadow-[0_0_10px_rgba(34,197,94,0.5)]
+                            {% elif loop.first %}bg-blue-500
+                            {% else %}bg-slate-400 dark:bg-slate-600 group-hover:bg-cyan-400{% endif %}">
+                        </div>
+                        
+                        <div class="p-3 rounded-lg border transition-all
+                                    bg-slate-50 border-slate-200 text-slate-700
+                                    dark:bg-slate-800/5 dark:border-slate-700/50 dark:text-slate-300 dark:hover:bg-slate-800/50 dark:hover:border-slate-600">
+                            <p class="text-sm">{{ log }}</p>
+                        </div>
+                    </div>
                     {% endfor %}
                 </div>
+                {% else %}
+                    <div class="text-center py-8">
+                        <i class="fas fa-stream text-slate-400 dark:text-slate-700 text-4xl mb-3"></i>
+                        <p class="text-slate-500">Aucun log disponible pour cette alerte.</p>
+                    </div>
+                {% endif %}
             </div>
-            {% endif %}
-            
-            {% if alert.treatment_protocol.procedures %}
-            <div>
-                <label class="text-sm text-slate-400 mb-2 block">Procédures effectuées</label>
-                <ul class="space-y-2">
-                    {% for proc in alert.treatment_protocol.procedures %}
-                    <li class="text-white flex items-start">
-                        <i class="fas fa-check text-green-400 mr-2 mt-1"></i>
-                        {{ proc }}
-                    </li>
-                    {% endfor %}
-                </ul>
-            </div>
-            {% endif %}
-        </div>
-        {% else %}
-        <p class="text-slate-400">Aucun protocole enregistré</p>
-        {% endif %}
-    </div>
 
-    <!-- Timeline -->
-    <div class="glass-panel p-8">
-        <h3 class="text-xl font-bold text-white mb-6">
-            <i class="fas fa-clock text-cyan-400 mr-2"></i>Chronologie
-        </h3>
-        
-        {% if alert.timeline %}
-        <div class="space-y-4">
-            {% for event in alert.timeline %}
-            <div class="flex items-start space-x-4">
-                <div class="w-10 h-10 rounded-full bg-cyan-500/20 flex items-center justify-center flex-shrink-0">
-                    <i class="fas fa-circle text-cyan-400 text-xs"></i>
-                </div>
-                <div class="flex-1">
-                    <p class="text-white font-medium">{{ event.title }}</p>
-                    <p class="text-sm text-slate-400">{{ event.time }}</p>
-                </div>
-            </div>
-            {% endfor %}
         </div>
-        {% else %}
-        <p class="text-slate-400">Aucune chronologie disponible</p>
-        {% endif %}
     </div>
 </div>
+{% endblock %} 
+
+{% block scripts %}
+<script>
+function confirmDelete(event, formId) {
+    event.preventDefault();
+    const form = document.getElementById(formId);
+    if (!form) return;
+
+    // Détection du thème (Check si classe 'dark' sur html ou body)
+    const isDarkMode = document.documentElement.classList.contains('dark') || 
+                       document.body.classList.contains('dark');
+
+    // Configuration des couleurs SweetAlert2 selon le thème
+    const themeConfig = isDarkMode ? {
+        bg: '#1e293b',      // Slate-800 (Dark Mode)
+        text: '#f8fafc',    // Slate-50
+        cancelBtn: 'bg-slate-700 hover:bg-slate-600 text-slate-300'
+    } : {
+        bg: '#ffffff',      // Blanc pur (Light Mode)
+        text: '#1e293b',    // Slate-900
+        cancelBtn: 'bg-gray-100 hover:bg-gray-200 text-gray-700'
+    };
+
+    Swal.fire({
+        title: 'Êtes-vous sûr ?',
+        text: "Cette action est irréversible.",
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonText: 'Oui, supprimer',
+        cancelButtonText: 'Annuler',
+        padding: '2rem',
+        background: themeConfig.bg,
+        color: themeConfig.text,
+        customClass: {
+            popup: 'rounded-xl shadow-2xl border border-transparent',
+            icon: 'mb-4', 
+            title: 'text-xl font-bold mb-2',
+            htmlContainer: 'text-sm opacity-80 mb-6',
+            actions: 'gap-3 w-full flex justify-center',
+            confirmButton: 'bg-red-500 hover:bg-red-600 text-white font-bold py-2.5 px-6 rounded-lg transition-colors shadow-lg shadow-red-500/30',
+            cancelButton: `${themeConfig.cancelBtn} font-bold py-2.5 px-6 rounded-lg transition-colors`
+        },
+        buttonsStyling: false
+    }).then((result) => {
+        if (result.isConfirmed) {
+            form.submit();
+        }
+    });
+}
+</script>
 {% endblock %}

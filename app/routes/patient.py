@@ -39,6 +39,7 @@ def profile():
     if alerts:
         print(f"DEBUG ALERT DATA: {alerts[0]}")
         print(f"DEBUG ALERT KEYS: {list(alerts[0].keys())}")
+        print(f"DEBUG ALERT STATUS: '{alerts[0].get('status', 'NO_STATUS_FIELD')}'")
     else:
         print("DEBUG: No alerts found")
     
