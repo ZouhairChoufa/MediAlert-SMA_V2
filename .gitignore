@@ -57,7 +57,8 @@ data/patients.json
 *.tmp
 *.bak
 
-#data files
+# Data files
+data\New_Medcin_maroc.csv
 data/*.csv
 data/*.xlsx
-
+data\file2.csv
