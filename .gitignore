@@ -56,3 +56,8 @@ data/patients.json
 # Temporary files
 *.tmp
 *.bak
+
+#data files
+data/*.csv
+data/*.xlsx
+

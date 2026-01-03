@@ -27,11 +27,14 @@ class User:
     
     @staticmethod
     def from_dict(data):
+        # Handle cases where fields might be missing
+        email = data.get('email', '')
+        username = data.get('username', email.split('@')[0] if email else 'unknown')
         return User(
-            username=data['username'],
-            email=data['email'],
-            password_hash=data['password_hash'],
-            role=data.get('role', 'user'),
+            username=username,
+            email=email,
+            password_hash=data.get('password_hash', ''),
+            role=data.get('role', 'patient'),
             created_at=data.get('created_at'),
             firebase_uid=data.get('firebase_uid')
         )
@@ -41,7 +44,7 @@ class UserStore:
         self.firebase = FirebaseService()
         self.collection = self.firebase.get_collection('users')
     
-    def create_user(self, username, email, password, role='user'):
+    def create_user(self, username, email, password, role='patient'):
         try:
             # Step 1: Create user in Firebase Auth
             user_record = auth.create_user(

@@ -4,10 +4,12 @@
 
 {% block styles %}
 <style>
+    /* Transition fluide pour les marqueurs (Style InDrive) */
     .smooth-marker-transition {
         transition: transform 1.0s linear, opacity 1.0s linear;
         will-change: transform;
     }
+    /* Style pour centrer l'icône dans le divIcon Leaflet */
     .ambulance-icon {
         background: transparent !important;
         border: none !important;
@@ -22,6 +24,7 @@
 
 {% block content %}
 <div class="grid grid-cols-12 gap-6 h-full">
+    
     <div class="col-span-3 space-y-6">
         <div class="glass-panel p-6">
             <h3 class="text-sm font-semibold text-cyan-400 uppercase tracking-wider mb-4">
@@ -141,19 +144,41 @@
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="{{ url_for('static', filename='js/simple_map.js') }}?v={{ range(1, 10000) | random }}"></script>
 <script src="{{ url_for('static', filename='js/emergency_workflow.js') }}?v={{ range(1, 10000) | random }}"></script>
+
 <script>
+// --- INJECTION DES COORDONNÉES POUR LE CALCUL DE DISTANCE ---
+// Ces variables sont lues par emergency_workflow.js pour remplacer "-- km"
+{% if patient.gps_coords %}
+    window.patientLat = {{ patient.gps_coords.lat }};
+    window.patientLng = {{ patient.gps_coords.lng }};
+{% else %}
+    // Valeurs par défaut (Casablanca) si pas de coords
+    window.patientLat = 33.5731;
+    window.patientLng = -7.5898;
+{% endif %}
+
 const alertId = "{{ alert_id }}";
 let persistentMap;
+
 document.addEventListener('DOMContentLoaded', () => {
+    // On récupère les données initiales pour initialiser la carte de base
     fetch(`/api/alert/${alertId}/data`)
         .then(res => res.json())
         .then(data => {
             let location = data.location;
-            if (typeof location === 'string') { try { location = JSON.parse(location); } catch (e) { location = { lat: 33.23, lng: -8.50 }; } }
-            const lat = location?.lat || 33.23;
-            const lng = location?.lng || -8.50;
+            if (typeof location === 'string') { 
+                try { location = JSON.parse(location); } catch (e) { location = { lat: window.patientLat, lng: window.patientLng }; } 
+            }
+            
+            // Utilisation des variables globales ou des données fetchées
+            const lat = location?.lat || window.patientLat;
+            const lng = location?.lng || window.patientLng;
             const name = data.patient?.nom_prenom || 'Patient';
+            
+            // Initialisation de la carte
             persistentMap = new SimpleMap('map', lat, lng, name);
+            
+            // IMPORTANT : On rend la carte accessible globalement pour emergency_workflow.js
             window.map = persistentMap.map;
         });
 });

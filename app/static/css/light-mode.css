@@ -4,6 +4,10 @@ body.light-mode {
     color: #0f172a !important;
 }
 
+.smooth-marker-transition {
+    transition: transform 1s linear;
+}
+
 body.light-mode aside {
     background: rgba(255, 255, 255, 0.95) !important;
     border-color: rgba(8, 145, 178, 0.3) !important;
