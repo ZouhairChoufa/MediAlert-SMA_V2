@@ -1,6 +1,6 @@
 MIT License
 
-Copyright (c) 2025 MediAlert SMA
+Copyright (c) 2025 MediAlert SMA - Université Chouaib Doukkali
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -19,3 +19,50 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
+
+---
+
+## Academic Attribution
+
+This project was developed as part of the Master's program in 
+**Business Intelligence & Big Data Analytics** at:
+
+**Université Chouaib Doukkali**
+Faculté des Sciences
+El Jadida, Morocco
+
+### Contributors
+
+- **Laila Es-seddyqy** - Multi-Agent Architecture & CrewAI Implementation
+- **Zouhair Choufa** - Firebase Integration & Backend Services  
+- **Belaid Oulhadj** - Frontend Development & API Design
+
+### Academic Supervisor
+
+- **Dr. [Supervisor Name]** - Research Director
+
+### Research Context
+
+MediAlert SMA represents an innovative approach to emergency medical dispatch
+using Multi-Agent Systems (MAS) and Large Language Models (LLM) for intelligent
+triage and resource optimization in healthcare emergency response.
+
+### Citation
+
+If you use this software in academic research, please cite:
+
+```
+Es-seddyqy, L., Choufa, Z., & Oulhadj, B. (2025). 
+MediAlert SMA: A Multi-Agent System for Intelligent Emergency Medical Dispatch. 
+Master's Thesis, Université Chouaib Doukkali, El Jadida, Morocco.
+```
+
+### Third-Party Acknowledgments
+
+This project integrates several open-source technologies:
+- CrewAI Framework (Apache 2.0 License)
+- Flask Web Framework (BSD License)
+- Groq API Services (Commercial License)
+- OpenRouteService API (Apache 2.0 License)
+- Firebase/Firestore (Google Cloud Terms)
+- Leaflet.js (BSD 2-Clause License)

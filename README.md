@@ -1,6 +1,15 @@
 # MediAlert SMA - Système Multi-Agents d'Urgence Médicale
+[![License: ISC](https://img.shields.io/badge/License-ISC-blue.svg)](https://opensource.org/licenses/ISC)
+[![Python](https://img.shields.io/badge/Python-3.10+-3776AB.svg?logo=python&logoColor=white)](https://www.python.org/)
+[![Flask](https://img.shields.io/badge/Flask-3.0-000000.svg?logo=flask&logoColor=white)](https://flask.palletsprojects.com/)
+[![Groq](https://img.shields.io/badge/Groq-Llama3-f55036.svg)](https://groq.com/)
+<br/>
 
-> **MediAlert SMA** est une plateforme de régulation médicale de nouvelle génération. Elle utilise une architecture **Multi-Agents Neuro-Symbolique** (Hybride) pour coordonner ambulances, hôpitaux et équipes médicales en temps réel, réduisant drastiquement le temps de réponse lors de la "Golden Hour".
+[![Node.js](https://img.shields.io/badge/Node.js-18+-339933.svg?logo=nodedotjs&logoColor=white)](https://nodejs.org/)
+[![Firebase](https://img.shields.io/badge/Firebase-11.6.1-FFCA28.svg?logo=firebase&logoColor=black)](https://firebase.google.com/)
+[![Tailwind CSS](https://img.shields.io/badge/Tailwind-3.x-38B2AC.svg?logo=tailwind-css&logoColor=white)](https://tailwindcss.com/)
+
+> **MediAlert SMA** est une plateforme de régulation médicale de nouvelle génération. Elle utilise une architecture  multi-agents hybride **Multi-Agents Neuro-Symbolique** (Hybride) pour coordonner ambulances, hôpitaux et équipes médicales en temps réel, réduisant drastiquement le temps de réponse lors de la "Golden Hour".
 
 ---
 
