@@ -1,555 +1,313 @@
-#  MediAlert SMA - Système Multi-Agents d'Urgence Médicale
+# MediAlert SMA - Système Multi-Agents d'Urgence Médicale
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
-[![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
-[![Flask](https://img.shields.io/badge/Flask-3.0-green.svg)](https://flask.palletsprojects.com/)
-[![LangChain](https://img.shields.io/badge/LangChain-0.2-purple.svg)](https://www.langchain.com/)
-[![Groq](https://img.shields.io/badge/Groq-llama--3.3--70b-orange.svg)](https://groq.com/)
+> **MediAlert SMA** est une plateforme de régulation médicale de nouvelle génération. Elle utilise une architecture **Multi-Agents Neuro-Symbolique** (Hybride) pour coordonner ambulances, hôpitaux et équipes médicales en temps réel, réduisant drastiquement le temps de réponse lors de la "Golden Hour".
 
-> **Système d'urgence médicale intelligent** propulsé par l'IA qui coordonne ambulances, hôpitaux et équipes médicales à travers une collaboration multi-agents intelligente.
+---
 
-##  Fonctionnalités Principales
+## Table des Matières
 
-###  **Intelligence Artificielle Multi-Agents**
-- **7 Agents Spécialisés**: Coordination harmonieuse pour la gestion des urgences
-- **Système de Triage Intelligent**: Analyse automatique des symptômes et évaluation de priorité
-- **Routage Intelligent**: Dispatch optimal d'ambulance basé sur la localisation et disponibilité
-- **Prise de Décision en Temps Réel**: Coordination instantanée entre tous les services d'urgence
+* [Fonctionnalités Clés](#fonctionnalités-clés)
+* [Architecture du Système](#architecture-du-système)
+* [Les 7 Agents Intelligents](#les-7-agents-intelligents)
+* [Installation et Démarrage](#installation-et-démarrage)
+* [Documentation API](#documentation-api)
+* [Structure du Projet](#structure-du-projet)
+* [Stack Technique](#stack-technique)
 
-###  **Gestion des Urgences**
-- **Création d'Alerte Instantanée**: Soumission rapide d'alerte d'urgence avec données complètes du patient
-- **Dispatch d'Ambulance**: Sélection et routage automatisés de l'ambulance disponible la plus proche
-- **Coordination Hospitalière**: Disponibilité des lits en temps réel et matching de spécialistes
-- **Assemblage d'Équipe Médicale**: Notification automatique des spécialistes médicaux requis
+---
 
-###  **Suivi Géospatial en Temps Réel**
-- **Cartes Interactives**: Visualisation en temps réel avec OpenStreetMap
-- **Recherche d'Hôpitaux**: Filtrage en temps réel par nom ou ville (min 2 caractères)
-- **Routage sur Routes Réelles**: Les routes suivent les routes réelles via l'API OpenRouteService
-- **Animation en Direct**: Mouvement de l'ambulance en temps réel (60 FPS) sur routes réelles
-- **Compte à Rebours ETA**: Mises à jour en temps réel du temps d'arrivée
-- **Distinction Visuelle**: Routes en pointillés rouges (aller) vs lignes bleues solides (retour)
+## Fonctionnalités Clés
 
-###  **MediBot - Assistant Médical IA**
-- **Chatbot IA 24/7**: Consultation médicale instantanée et pré-triage
-- **Détection Critique**: Escalade automatique d'urgence pour symptômes mettant la vie en danger
-- **Mémoire de Conversation**: Réponses contextuelles tout au long de la session
-- **Interface Professionnelle**: Widget de chat flottant avec animations fluides
+### Intelligence Artificielle Distribuée
 
-###  **Intelligence de Géolocalisation IP**
-- **Détection Automatique de Localisation**: Utilise AbstractAPI pour détecter la localisation du patient depuis l'IP
-- **Fallback Intelligent**: Valide les localisations manuelles vagues avec géolocalisation basée sur IP
-- **Gestion des Proxies**: Gère X-Forwarded-For pour extraction IP précise
-- **Piste d'Audit**: Stocke les localisations manuelles et IP pour conformité
+* **Orchestration Multi-Agents** : Collaboration autonome entre 7 agents spécialisés via le framework CrewAI.
+* **Approche Hybride** : Combine la puissance cognitive des LLM (Groq/Llama-3) pour le diagnostic avec la rigueur des algorithmes symboliques pour la logistique (Routing).
+* **Triage Automatique** : Analyse sémantique des symptômes et calcul du score de gravité (CCMU/ESI).
 
-##  Architecture du Système
+### Gestion Opérationnelle
+
+* **Routage Intelligent** : Calcul d'itinéraire optimal (OpenRouteService) prenant en compte le trafic et la distance réelle.
+* **Suivi Temps Réel** : Visualisation en direct du déplacement des ambulances (Animation 60 FPS sur Leaflet/OSM).
+* **Coordination Hospitalière** : Vérification dynamique de la disponibilité des lits et des spécialités.
+
+### MediBot - Assistant Pré-Hospitalier
+
+* **Disponibilité 24/7** : Chatbot médical pour le pré-triage.
+* **API Infermedica** : Validation des symptômes et conseils d'automédication pour les cas bénins.
+* **Fail-Safe** : Déclenchement forcé de l'alerte si des mots-clés critiques (ex: "douleur poitrine") sont détectés.
+
+### Intelligence Géospatiale
+
+* **Géolocalisation Hybride** : Fusion des données GPS manuelles et de la triangulation IP (AbstractAPI).
+* **Cartographie Interactive** : Interface "Mobile First" avec modes Clair/Sombre synchronisés.
+
+---
+
+## Architecture du Système
+
+Le système repose sur le modèle **AEIO** (Agents, Environnement, Interactions, Organisation).
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│                  MediAlert SMA - Architecture                │
+│                 Système Multi-Agents CrewAI                 │
 ├─────────────────────────────────────────────────────────────┤
 │                                                               │
-│  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐      │
-│  │   Agent      │  │    Agent     │  │    Agent     │      │
-│  │   Patient    │→ │ Coordonnateur│→ │   Hôpital    │      │
-│  └──────────────┘  └──────────────┘  └──────────────┘      │
-│         ↓                  ↓                  ↓              │
-│  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐      │
-│  │    Agent     │  │    Agent     │  │    Agent     │      │
-│  │   Médecin    │  │  Ambulance   │  │  Spécialiste │      │
-│  │   Urgence    │  │              │  │              │      │
-│  └──────────────┘  └──────────────┘  └──────────────┘      │
-│                           ↓                                  │
+│  Patient (Web/Chat)                                          │
+│         ↓                                                    │
+│  ┌──────────────┐    ┌──────────────┐    ┌──────────────┐  │
+│  │   Agent      │ →  │    Agent     │ →  │    Agent     │  │
+│  │   Patient    │    │ Médecin      │    │Coordonnateur │  │
+│  │ (Perception) │    │ (Triage IA)  │    │ (Stratégie)  │  │
+│  └──────────────┘    └──────────────┘    └──────────────┘  │
+│         ↓                     ↓                     ↓       │
+│  ┌──────────────┐    ┌──────────────┐    ┌──────────────┐  │
+│  │    Agent     │    │    Agent     │    │    Agent     │  │
+│  │  Ambulance   │    │   Hôpital    │    │ Spécialiste  │  │
+│  │ (Logistique) │    │ (Ressources) │    │(Protocoles)  │  │
+│  └──────────────┘    └──────────────┘    └──────────────┘  │
+│         ↓                     ↓                     ↓       │
 │                  ┌──────────────┐                           │
 │                  │     Agent    │                           │
 │                  │Administratif │                           │
+│                  │ (Interface)  │                           │
 │                  └──────────────┘                           │
+│                           ↓                                  │
+│                  Firebase Firestore                         │
 │                                                               │
 └─────────────────────────────────────────────────────────────┘
 ```
 
-##  Démarrage Rapide (5 Minutes!)
-
-### Prérequis
-
-- Python 3.10 - 3.13
-- Gestionnaire de paquets pip
-- Clé API Groq (pour modèles IA) ✅ Déjà configurée!
-- Clé API OpenRouteService (GRATUIT - obtenir sur https://openrouteservice.org)
-- Clé API AbstractAPI (GRATUIT - obtenir sur https://www.abstractapi.com/)
-
-### Installation
-
-1. **Cloner le dépôt**
-```bash
-git clone https://github.com/votre-repo/medialert-sma.git
-cd medialert-sma
-```
-
-2. **Créer l'environnement virtuel**
-```bash
-python -m venv .venv
-```
-
-3. **Activer l'environnement virtuel**
-```bash
-# Windows
-.venv\Scripts\activate
-
-# Linux/Mac
-source .venv/bin/activate
-```
-
-4. **Installer les dépendances**
-```bash
-pip install -r scripts/requirements_fixed.txt
-```
-
-5. **Configurer les variables d'environnement**
-```bash
-# Copier le fichier d'exemple
-copy config\.env.example config\.env
-
-# Éditer config/.env avec vos clés API:
-GROQ_API_KEY=votre_clé_groq_ici
-ORS_API_KEY=votre_clé_openrouteservice_ici
-ABSTRACT_API_KEY=votre_clé_abstractapi_ici
-FIREBASE_CREDENTIALS_PATH=config/firebase-credentials.json
-```
-
-6. **Lancer l'application**
-```bash
-# Windows - Utiliser le script de démarrage!
-start_app.bat
-
-# Ou manuellement
-set PYTHONPATH=.
-python run.py
-```
-
-7. **Accéder au système**
-```
-Dashboard:     http://localhost:5000
-MediBot:       Cliquer sur le bouton 🤖 (en bas à droite)
-Suivi Live:    Info Patient → Bouton Suivi en Direct
-```
-
-##  Test Rapide des Fonctionnalités
-
-### Tester MediBot (30 secondes)
-1. Ouvrir http://localhost:5000
-2. Cliquer sur le bouton  (en bas à droite)
-3. Taper: "J'ai mal à la tête"
-4. Voir la réponse IA! 
-
-### Tester le Suivi en Direct (2 minutes)
-1. Aller sur /alert
-2. Créer une alerte d'urgence
-3. Aller sur /patient_info
-4. Cliquer sur "Suivi en Direct"
-5. Regarder l'ambulance se déplacer! ✅
-
-##  Pages de l'Application
-
-###  Dashboard (`/`)
-- Statistiques et métriques du système
-- Accès rapide à toutes les fonctionnalités
-- Indicateurs de performance en temps réel
-- Mise en avant des fonctionnalités
-
-###  Alerte d'Urgence (`/alert`)
-- Créer de nouvelles alertes d'urgence
-- Saisie d'informations patient
-- Description des symptômes
-- Suivi de localisation (IP + Manuel)
-
-###  Informations Patient (`/patient_info`)
-- Dossiers patients complets
-- Détails d'assignation d'ambulance
-- Informations de destination hospitalière
-- Assignations d'équipe médicale
-
-###  Rapports Médicaux (`/medical_reports`)
-- Analyse du médecin urgentiste
-- Plans de traitement spécialisés
-- Rapports PDF téléchargeables
-- Documentation médicale complète
-
-###  Panneau Admin (`/admin`)
-- Statut de la flotte d'ambulances
-- Surveillance du réseau hospitalier
-- Personnel médical de garde
-- Métriques et logs système
-
-##  Points de Terminaison API
-
-### Créer une Alerte d'Urgence
-```http
-POST /api/alert
-Content-Type: application/json
-
-{
-  "symptomes": "Douleur thoracique sévère",
-  "localisation": "123 Rue Principale, Casablanca",
-  "nom_prenom": "Jean Dupont",
-  "age": 45,
-  "sexe": "M"
-}
-```
-
-### Obtenir Tous les Patients
-```http
-GET /api/patients
-```
-
-### Obtenir les Détails d'un Patient
-```http
-GET /api/patient/{id}
-```
-
-### Obtenir la Flotte d'Ambulances
-```http
-GET /api/ambulances
-```
-
-### Obtenir le Réseau Hospitalier
-```http
-GET /api/hospitals
-```
-
-### Chat MediBot
-```http
-POST /api/chat
-Content-Type: application/json
-
-{
-  "message": "J'ai de la fièvre et mal à la gorge"
-}
-```
-
-## 🤖 Les 7 Agents IA
-
-### 1. **Agent Patient (Émetteur d'Alerte)**
-Crée des alertes d'urgence avec symptômes et données de localisation du patient.
-
-**Rôle**: Point d'entrée du système
-**Objectif**: Structurer les données d'urgence en format exploitable
-**Technologie**: LangChain + Groq LLM
-
-### 2. **Agent Médecin Urgence (Triage Médical)**
-Analyse les symptômes et attribue un score de gravité (CCMU/ESI).
-
-**Rôle**: Régulation médicale IA
-**Objectif**: Classification de priorité et recommandation de ressources
-**Sortie**: Score 1-5, type de vecteur (SMUR/Ambulance/VSL)
-
-### 3. **Agent Coordonnateur (Chef de Régulation)**
-Orchestre la réponse d'urgence et gère les ressources.
-
-**Rôle**: Tour de contrôle
-**Objectif**: Allocation optimale des ressources
-**Outils**: HospitalSearchTool (recherche spatiale)
-
-### 4. **Agent Ambulance (Pilote d'Intervention Mobile)**
-Sélectionne l'ambulance optimale et calcule les routes.
-
-**Rôle**: Unité mobile connectée
-**Objectif**: Routage le plus rapide avec ETA
-**Outils**: RouteCalculationTool (OpenRouteService)
-
-### 5. **Agent Hôpital (Gestionnaire de Ressources)**
-Gère la disponibilité des lits et prépare les équipes médicales.
-
-**Rôle**: Gestionnaire de flux d'urgences
-**Objectif**: Éliminer le temps d'attente à l'entrée
-**Sortie**: Réservation de lit, mobilisation d'équipe
-
-### 6. **Agent Médecin Spécialiste (Moteur de Protocoles)**
-Génère des checklists et suggère des protocoles de soins standardisés.
-
-**Rôle**: Base de connaissances médicale active
-**Objectif**: Protocoles "Gold Standard" pour éviter les oublis
-**Sortie**: SOPs, checklist pré-arrivée, médicaments
-
-### 7. **Agent Administratif (Interface Patient & Reporting)**
-Traduit le jargon technique en statut clair pour l'utilisateur.
-
-**Rôle**: Interface patient
-**Objectif**: Transparence et traçabilité
-**Sortie**: Vue UI consolidée, rapports légaux
-
-## 📁 Structure du Projet
-
-```
-medialert_pro/
-├── app/                          # Code application principal
-│   ├── crew/                     # Orchestration agents IA
-│   │   ├── config/              # Configurations agents & tâches
-│   │   │   ├── agents.yaml      # Définitions 7 agents
-│   │   │   └── tasks.yaml       # Définitions tâches séquentielles
-│   │   ├── crew_simple.py       # Implémentation crew simplifiée
-│   │   ├── crew.py              # Implémentation CrewAI complète
-│   │   └── tools.py             # Outils CrewAI personnalisés
-│   ├── routes/                   # Points de terminaison Flask
-│   │   ├── api.py               # Points de terminaison API REST
-│   │   ├── chat.py              # Conversations MediBot
-│   │   └── web.py               # Dashboard & formulaires
-│   ├── services/                 # Logique métier principale
-│   │   ├── firebase_service.py  # Persistance données temps réel
-│   │   ├── hospital_service.py  # Chargement CSV & recherche spatiale
-│   │   ├── location_service.py  # Géolocalisation basée IP
-│   │   └── ors_service.py       # Calcul route & polylines
-│   ├── static/                   # Assets frontend
-│   │   ├── css/                 # Styles personnalisés
-│   │   ├── js/                  # Modules JavaScript
-│   │   │   ├── dashboard.js     # Mises à jour UI temps réel
-│   │   │   └── map_animation.js # Logique suivi ambulance
-│   │   └── images/              # Images application
-│   ├── templates/                # Templates HTML
-│   │   ├── components/          # Composants UI réutilisables
-│   │   │   └── chat_widget.html # Interface chat MediBot
-│   │   ├── base.html            # Layout professionnel
-│   │   └── dashboard.html       # Centre de contrôle principal
-│   ├── __init__.py              # Factory app Flask
-│   └── config.py                # Configuration application
-├── config/                       # Fichiers configuration
-│   ├── .env                     # Variables environnement (privé)
-│   ├── .env.example             # Template environnement
-│   └── firebase-credentials.json # Compte service Firebase (privé)
-├── data/                         # Fichiers données
-│   └── morocco_hospitals.csv    # Base données hôpitaux
-├── docs/                         # Documentation
-│   ├── PROJECT_STRUCTURE.md     # Structure projet
-│   ├── REORGANIZATION_SUMMARY.md # Résumé réorganisation
-│   └── VIRTUAL_ENVIRONMENT_SETUP.md # Guide setup
-├── logs/                         # Logs application
-├── scripts/                      # Scripts utilitaires
-│   ├── install.py               # Script installation
-│   ├── requirements_fixed.txt   # Dépendances fonctionnelles
-│   └── requirements.txt         # Dépendances complètes
-├── tests/                        # Fichiers test
-│   ├── test_installation.py     # Vérification installation
-│   └── test_simple.py           # Tests composants simples
-├── .venv/                        # Environnement virtuel Python
-├── .gitignore                    # Règles ignore Git
-├── activate_venv.bat            # Activation environnement
-├── start_app.bat                # Lanceur application
-└── run.py                        # Point d'entrée application
-```
-
-##  Fonctionnalités de Design
-
-- **Mode Sombre/Clair**: Basculement fluide avec persistance localStorage
-- **Thèmes de Carte Synchronisés**: Tuiles CartoDB Dark/Light changent automatiquement
-- **Timeline Animée**: Processus d'urgence en 5 étapes avec animations pulse
-- **UI/UX Moderne**: Interface propre et professionnelle avec arrière-plans dégradés
-- **Design Responsive**: Fonctionne parfaitement sur desktop, tablette et mobile
-- **Navigation Intuitive**: Logo cliquable + navbar cohérente sur toutes les pages
-- **Retour Visuel**: États de chargement, messages succès/erreur
-- **Typographie Professionnelle**: Hiérarchie claire et lisibilité
-- **Statut Codé par Couleur**: Indicateurs visuels faciles à comprendre
-
-## 🔧 Configuration
-
-### Configuration Agents (`agents.yaml`)
-Personnaliser les rôles, objectifs et backstories des agents IA.
-
-### Configuration Tâches (`tasks.yaml`)
-Définir les tâches, sorties attendues et assignations d'agents.
-
-### Logique Crew (`crew_simple.py`)
-Modifier les paramètres agents, paramètres LLM et workflow.
-
-### Variables Environnement (`.env`)
-```env
-GROQ_API_KEY=votre_clé_groq
-ORS_API_KEY=votre_clé_ors
-ABSTRACT_API_KEY=votre_clé_abstract
-FIREBASE_CREDENTIALS_PATH=config/firebase-credentials.json
-FLASK_SECRET_KEY=votre_clé_secrète
-FLASK_ENV=development
-```
-
-##  Métriques Système
-
-- **Temps de Réponse Moyen**: 8 minutes
-- **Disponibilité Système**: 99.8%
-- **Alertes Concurrentes**: Illimitées
-- **Traitement IA**: Temps réel
-- **Limite Taux API**: 1000 requêtes/heure
-
-##  Fonctionnalités de Sécurité
-
-- Authentification par clé API
-- Limitation de taux
-- Validation des entrées
-- Gestion sécurisée des données
-- Prêt HTTPS
-- Environnement virtuel isolé
-- Gestion des secrets
-
-##  Stack Technique
-
-### Backend
-- **Flask 3.0**: Framework web Python
-- **LangChain 0.2**: Framework orchestration IA
-- **Groq API**: Inférence LLM rapide (llama-3.3-70b)
-- **Firebase Admin**: Base données temps réel
-- **Pandas 2.1**: Manipulation données
-
-### Frontend
-- **HTML5/CSS3**: Structure et style
-- **JavaScript ES6**: Logique client
-- **Leaflet.js**: Cartes interactives
-- **TailwindCSS**: Framework CSS utilitaire
-
-### APIs & Services
-- **OpenRouteService**: Calcul routes et routage
-- **AbstractAPI**: Géolocalisation IP
-- **OpenStreetMap**: Données cartographiques
-
-### Outils Développement
-- **Python 3.12**: Langage programmation
-- **Virtual Environment**: Isolation dépendances
-- **Git**: Contrôle version
-- **Docker**: Conteneurisation (optionnel)
-
-##  Contribution
-
-Nous accueillons les contributions! Veuillez suivre ces étapes:
-
-1. Fork le dépôt
-2. Créer une branche fonctionnalité (`git checkout -b feature/FonctionnaliteIncroyable`)
-3. Commit vos changements (`git commit -m 'Ajouter FonctionnaliteIncroyable'`)
-4. Push vers la branche (`git push origin feature/FonctionnaliteIncroyable`)
-5. Ouvrir une Pull Request
-
-##  Licence
-
-Ce projet est sous licence MIT - voir le fichier [LICENSE](LICENSE) pour détails.
-
-##  Support
-
-- **Documentation**: [Docs Projet](docs/)
-- **GitHub Issues**: [Signaler un bug](https://github.com/votre-repo/medialert-sma/issues)
-- **LangChain Docs**: [Documentation LangChain](https://python.langchain.com/)
-- **Groq Docs**: [Documentation Groq](https://console.groq.com/docs)
-
-##  Remerciements
-
-- **LangChain**: Pour le puissant framework multi-agents
-- **Groq**: Pour l'inférence IA rapide
-- **Flask**: Pour le framework web
-- **OpenRouteService**: Pour les services de routage
-- **AbstractAPI**: Pour la géolocalisation IP
-- **OpenStreetMap**: Pour les données cartographiques
-
-##  Feuille de Route
-
-### ✅ Complété
-- [x] **Système Multi-Agents IA** - 7 agents spécialisés
-- [x] **Assistant Médical IA (MediBot)** - Chatbot 24/7 avec détection critique
-- [x] **Suivi Ambulance en Direct** - Cartes temps réel et animation
-- [x] **Cartes Interactives** - Intégration OpenStreetMap avec recherche
-- [x] **Recherche d'Hôpitaux** - Filtrage temps réel par nom/ville
-- [x] **Mode Sombre/Clair** - Basculement fluide avec tuiles synchronisées
-- [x] **Timeline Animée** - Processus d'urgence en 5 étapes
-- [x] **Routage Intelligent** - Calcul route automatique
-- [x] **Compte à Rebours ETA** - Estimations arrivée temps réel
-- [x] **Géolocalisation IP** - Détection automatique localisation
-- [x] **Environnement Virtuel** - Isolation dépendances
-
-###  À Venir
-- [ ] Intégration GPS réelle
-- [ ] Application mobile
-- [ ] Support multi-langues
-- [ ] Dashboard analytique avancé
-- [ ] Intégration systèmes hospitaliers
-- [ ] Capacités télémédecine
-- [ ] Système facturation automatisé
-- [ ] Notifications push temps réel
-
-##  Documentation
-
-### Démarrage Rapide
-- **[VIRTUAL_ENVIRONMENT_SETUP.md](docs/VIRTUAL_ENVIRONMENT_SETUP.md)** - Guide setup environnement
-- **[PROJECT_STRUCTURE.md](docs/PROJECT_STRUCTURE.md)** - Structure projet détaillée
-
-### Implémentation
-- **[REORGANIZATION_SUMMARY.md](docs/REORGANIZATION_SUMMARY.md)** - Résumé réorganisation
-
-### Déploiement
-- **[Dockerfile](Dockerfile)** - Configuration conteneur
-- **[docker-compose.yml](deployment/docker-compose.yml)** - Orchestration services
-
-## 🎉 Nouveautés v2.0
-
-### Intelligence Multi-Agents 🤖
-- ✅ 7 agents IA spécialisés
-- ✅ Coordination temps réel
-- ✅ Triage médical automatique
-- ✅ Routage intelligent ambulances
-- ✅ Gestion ressources hospitalières
-
-### Assistant Médical IA 🤖
-- ✅ Chatbot temps réel avec Groq LLM
-- ✅ Détection symptômes critiques (15+ mots-clés)
-- ✅ Escalade alerte urgence
-- ✅ Mémoire conversation basée session
-- ✅ Widget flottant professionnel
-- ✅ Responsive mobile
-
-### Intelligence Géospatiale 🗺️
-- ✅ Intégration OpenStreetMap
-- ✅ Routage OpenRouteService
-- ✅ Cartes interactives Leaflet
-- ✅ Animation ambulance temps réel
-- ✅ Minuteur compte à rebours ETA
-- ✅ Calculs distance
-- ✅ Algorithme hôpital le plus proche
-
-### Améliorations Techniques
-- ✅ 6 nouveaux points terminaison API
-- ✅ 2000+ lignes code production
-- ✅ 8 guides documentation complets
-- ✅ Couverture test 100% (manuel)
-- ✅ Zéro bugs critiques
-- ✅ Temps réponse < 2s
-- ✅ Environnement virtuel isolé
-
-## Valeur Business
-
-### Économies de Coûts
-- **Réduction 60%** volume appels non-critiques
-- **30% plus rapide** temps réponse urgence
-- **100K€+/an** économies opérationnelles
-
-### Potentiel Revenus
-- **Starter**: 299€/mois
-- **Professionnel**: 999€/mois
-- **Entreprise**: 2999€/mois
-- **Potentiel**: 455K€+/an avec 35 clients
-
-### Avantages Concurrentiels
-- ✅ Propulsé IA (pas juste dispatch)
-- ✅ Suivi temps réel (transparence)
-- ✅ Solution complète (bout en bout)
-- ✅ UI professionnelle (prêt entreprise)
-- ✅ Scalable (utilisateurs illimités)
-- ✅ Environnement isolé (sécurité)
+### Flux de Données
+
+1. **Perception** : L'Agent Patient normalise les données d'entrée.
+2. **Cognition** : L'Agent Médecin analyse sémantiquement l'urgence via Groq.
+3. **Décision** : L'Agent Coordinateur décide de l'action (Envoi SMUR ou non).
+4. **Action** : L'Agent Ambulance calcule la route et l'Agent Hôpital réserve le lit.
 
 ---
 
-<div align="center">
+## Les 7 Agents Intelligents
 
-# 🎊 Prêt pour Production! 🎊
+| Agent | Type | Rôle Principal | Outils / Technologie |
+|-------|------|----------------|---------------------|
+| **1. Patient** | Capteur | Émetteur d'alerte et normalisation des données. | LangChain |
+| **2. Médecin Urgence** | Cognitif | Triage médical, calcul score CCMU. | **Groq Llama-3-70b** |
+| **3. Coordinateur** | Stratège | Chef de régulation, prise de décision finale. | Logique Hybride |
+| **4. Ambulance** | Réactif | Pilote d'intervention, navigation GPS. | **OpenRouteService** |
+| **5. Hôpital** | Ressource | Gestion des lits et admission. | Pandas (CSV Data) |
+| **6. Spécialiste** | Savoir | Génération de protocoles (SOP) et checklists. | Groq (Prompt Engineering) |
+| **7. Administratif** | Interface | Reporting et feedback utilisateur. | Jinja2 Templates |
 
-**v2.0 - Système Multi-Agents Complet**
+---
 
-**Construit avec ❤️ pour sauver des vies**
+## Installation et Démarrage
 
-[Documentation](docs/) • [GitHub](https://github.com/votre-repo/medialert-sma)
+### Prérequis
 
-**Prêt à déployer et vendre!** 🚀
+* Python 3.10+
+* Clés API (gratuites) : Groq, OpenRouteService, AbstractAPI.
+* Fichier `firebase-credentials.json` (Compte de service Firebase).
 
-</div>
+### 1. Clonage et Environnement
+
+```bash
+git clone https://github.com/votre-user/medialert-sma.git
+cd medialert-sma
+python -m venv .venv
+
+# Activation
+# Windows :
+.venv\Scripts\activate
+# Linux/Mac :
+source .venv/bin/activate
+```
+
+### 2. Installation des Dépendances
+
+```bash
+pip install -r requirements.txt
+```
+
+### 3. Configuration
+
+Renommez `.env.example` en `.env` et configurez vos clés :
+
+```env
+GROQ_API_KEY=gsk_...
+ORS_API_KEY=5b3ce...
+ABSTRACT_API_KEY=...
+FIREBASE_CREDENTIALS_PATH=config/firebase-credentials.json
+FLASK_SECRET_KEY=votre_cle_secrete
+```
+
+### 4. Lancement
+
+```bash
+# Via le script de démarrage (Windows)
+start_app.bat
+
+# Ou manuellement
+python run.py
+```
+
+Accédez à l'application sur : `http://localhost:5000`
+
+---
+
+## Documentation API
+
+L'API REST permet aux interfaces (Web/Mobile) d'interagir avec le SMA.
+
+### Gestion des Alertes
+
+#### **Créer une Alerte**
+
+Déclenche le workflow multi-agents complet.
+`POST /api/alert`
+
+**Body :**
+
+```json
+{
+  "nom_prenom": "Jean Dupont",
+  "age": 45,
+  "sexe": "M",
+  "symptomes": "Douleur thoracique irradiant bras gauche",
+  "localisation": "El Jadida, Centre Ville",
+  "lat": 33.254,
+  "lng": -8.501
+}
+```
+
+**Réponse :**
+
+```json
+{
+  "success": true,
+  "alert_id": "8a2f4c...",
+  "status": "processing",
+  "dispatch": { 
+    "ambulance": "SMUR-01", 
+    "hopital": "Hopital Mohammed V" 
+  }
+}
+```
+
+#### **Suivi d'Alerte (Polling)**
+
+Récupère l'état temps réel de l'intervention.
+`GET /api/alert/<alert_id>/data`
+
+**Réponse :**
+
+```json
+{
+  "status": "DISPATCHED",
+  "logs": ["Triage complet: CCMU 3", "Ambulance en route"],
+  "eta_minutes": 8,
+  "route_active": "RED",
+  "ambulance_coords": [33.25, -8.51]
+}
+```
+
+### MediBot & Géolocalisation
+
+#### **Chat Médical**
+
+`POST /api/chat`
+
+```json
+{ "message": "J'ai du mal à respirer" }
+```
+
+#### **Géocodage Adresse**
+
+`POST /api/geocode`
+
+```json
+{ "address": "Faculté des Sciences El Jadida" }
+```
+
+#### **Détection IP**
+
+`POST /api/detect-ip-location`
+*(Sans body, utilise l'en-tête IP)*
+
+### Ressources
+
+* `GET /api/ambulances` : Liste de la flotte et statuts.
+* `GET /api/hospitals` : Liste des hôpitaux et disponibilités.
+
+---
+
+## Structure du Projet
+
+```
+medialert_sma/
+├── app/
+│   ├── crew/                 # CŒUR DU SMA
+│   │   ├── config/           # YAML Déclaratifs (Agents/Tasks)
+│   │   ├── crew.py           # Logique CrewAI
+│   │   └── tools/            # Outils Custom (ORS, Search)
+│   ├── routes/               # Endpoints API (Blueprint)
+│   │   ├── web.py            # Routes principales (/alert)
+│   │   ├── api.py            # API REST
+│   │   ├── patient.py        # Gestion profils patients
+│   │   └── chatbot.py        # MediBot endpoints
+│   ├── services/             # Services Métier (Firebase, Geo, ORS)
+│   ├── static/               # Assets (JS/CSS/Leaflet)
+│   └── templates/            # Vues HTML (Jinja2)
+├── config/                   # Variables d'env & Clés
+├── data/                     # CSV Hôpitaux Maroc
+├── run.py                    # Point d'entrée
+└── requirements.txt          # Dépendances Python
+```
+
+---
+
+## Stack Technique
+
+| Couche | Technologies |
+|--------|-------------|
+| **Frontend** | HTML5, TailwindCSS, JavaScript (ES6), Leaflet.js |
+| **Backend API** | Python, Flask 3.0 |
+| **Orchestration IA** | **CrewAI**, LangChain |
+| **LLM Engine** | **Groq API** (Llama-3.1-70b Versatile) |
+| **Base de Données** | **Firebase Firestore** (NoSQL Temps Réel) |
+| **Géospatial** | OpenRouteService (Routing), AbstractAPI (IP), OpenStreetMap |
+
+---
+
+## Workflow CrewAI
+
+Le système suit un processus séquentiel strict :
+
+1. **Agent Patient** : Normalisation des données d'entrée
+2. **Agent Médecin Urgence** : Triage médical et score CCMU
+3. **Agent Coordinateur** : Sélection hôpital et ambulance
+4. **Agent Ambulance** : Calcul de trajectoire précise
+5. **Agent Hôpital** : Préparation des ressources
+6. **Agent Spécialiste** : Génération des protocoles
+7. **Agent Administratif** : Consolidation pour l'interface
+
+### Données Sauvegardées
+
+Chaque alerte Firebase contient :
+- **Input** : patient, localisation, symptômes
+- **Processing** : status, logs, timestamps  
+- **Output** : hospital_name, distance_km, eta_minutes, medical_team
+- **UI** : full_report avec timeline et détails techniques
+
+---
+
+## Licence & Crédits
+
+Ce projet est sous licence **MIT**.
+
+Développé dans le cadre du Master **Business Intelligence & Big Data Analytics**.
+*Université Chouaib Doukkali, El Jadida.*
+
+**Contributeurs :**
+* Laila Es-seddyqy
+* Zouhair Choufa  
+* Belaid Oulhadj
